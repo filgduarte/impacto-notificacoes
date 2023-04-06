@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div id="popup-container">
+<!-- MENU DE NAVEGAÇÃO -->
+        <nav>
+            <button data-target="#home" title="Início" class="active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="16">
+                    <path d="M10.015 4.15 3.429 9.576v5.854a.571.571 0 0 0 .572.571l4.003-.01a.571.571 0 0 0 .568-.572V12a.572.572 0 0 1 .572-.572h2.286A.572.572 0 0 1 12 12v3.416a.57.57 0 0 0 .572.573l4 .011a.571.571 0 0 0 .572-.572V9.572l-6.584-5.42a.436.436 0 0 0-.546 0Zm10.402 3.687-2.986-2.461V.429A.429.429 0 0 0 17.002 0h-2a.429.429 0 0 0-.428.429v2.593L11.376.392a1.714 1.714 0 0 0-2.18 0L.157 7.836a.429.429 0 0 0-.058.604l.911 1.107a.429.429 0 0 0 .604.058l8.402-6.92a.435.435 0 0 1 .546 0l8.402 6.92a.428.428 0 0 0 .604-.057l.91-1.107a.427.427 0 0 0-.06-.605Z">
+                </svg>
+            </a>
+            <button data-target="#status" title="Alterar mensagens de troca de status">
+                Status
+            </button>
+            <button data-target="#pagamentos" title="Alterar mensagens de pagamento">
+                Pagamentos
+            </button>
+            <button data-target="#ajuda" title="Ajuda">
+                Ajuda
+            </button>
+            <div id="active-tab-marker"></div>
+        </nav>
+
+<!-- CONTEÚDO -->
+        <main>
+
+<!-- SEÇÃO INICIAL -->
+            <section id="home">
+                <div class="logo">
+                    <img src="../images/icon-128.png" alt="Logo Gráfica Impacto Notificações">
+                    <h1>Gráfica Impacto Notificações</h1>
+                </div>
+                <div class="app-status">
+                    <table>
+                        <tr class="app-status__link">
+                            <td class="app-status__icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">
+                                    <path d="M8.775 3.031a4.036 4.036 0 0 0-2.779-1.096 4.07 4.07 0 0 0-3.938 3.07.291.291 0 0 1-.282.22H.39a.29.29 0 0 1-.286-.342 6.002 6.002 0 0 1 10.04-3.221l.865-.864a.58.58 0 0 1 .991.41v3.244c0 .32-.26.58-.58.58H8.175a.58.58 0 0 1-.41-.991l1.01-1.01ZM.581 6.968h3.243a.58.58 0 0 1 .41.991l-1.01 1.01a4.035 4.035 0 0 0 2.78 1.096 4.07 4.07 0 0 0 3.938-3.07.291.291 0 0 1 .282-.22h1.386a.29.29 0 0 1 .286.342 6.002 6.002 0 0 1-10.04 3.221l-.865.864a.58.58 0 0 1-.991-.41V7.548c0-.32.26-.58.58-.58Z"/>
+                                </svg>
+                            </td>
+                            <td class="app-status__label">
+                                Conexão com o site:
+                            </td>
+                            <td class="app-status__status">
+                                <span class="loading"></span>
+                                <span class="success">Ativa</span>
+                                <span class="fail">Inativa</span>
+                            </td>
+                        </tr>
+                        <tr class="app-status__sync">
+                            <td class="app-status__icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">
+                                    <path d="M7.655 4.345a3.56 3.56 0 0 1 0 5.038L6.08 10.958a3.566 3.566 0 0 1-5.038 0 3.566 3.566 0 0 1 0-5.038l.87-.87a.375.375 0 0 1 .64.249c.014.415.089.833.226 1.236a.377.377 0 0 1-.088.389l-.307.307c-.657.657-.678 1.726-.027 2.39a1.69 1.69 0 0 0 2.398.011L6.33 8.058a1.687 1.687 0 0 0-.242-2.588.376.376 0 0 1-.163-.295.934.934 0 0 1 .274-.699l.494-.493a.376.376 0 0 1 .482-.041c.172.12.333.255.481.403Zm3.303-3.303a3.566 3.566 0 0 0-5.038 0L4.345 2.617a3.56 3.56 0 0 0 .481 5.441c.15.105.353.089.482-.04l.494-.494a.934.934 0 0 0 .274-.699.376.376 0 0 0-.163-.295 1.687 1.687 0 0 1-.242-2.587l1.575-1.575a1.69 1.69 0 0 1 2.398.012c.65.663.63 1.732-.027 2.39l-.307.306a.377.377 0 0 0-.088.39c.137.402.212.82.227 1.235.012.326.409.48.64.249l.87-.87a3.566 3.566 0 0 0 0-5.038Z"/>
+                                </svg>
+                            </td>
+                            <td class="app-status__label">
+                                Sincronização do Chrome:
+                            </td>
+                            <td class="app-status__status">
+                                <span class="loading"></span>
+                                <span class="success">Ativa</span>
+                                <span class="fail">Inativa</span>
+                            </td>
+                        </tr>
+                    </table>
+                    <footer>
+                        <small>Desenvolvido por <a href="http://filduarte.com.br" target="_blank">Filipe Duarte</a></small>
+                    </footer>
+                </div>
+            </section>
+
+<!-- SEÇÃO STATUS -->
+            <section id="status">
+                <div class="accordeon">
+                    <div class="accordeon-item">
+                        <div class="accordeon-item__header">
+                            <label>
+                                <input type="checkbox" class="switch-input">
+                                <div class="switch-ui">
+                                    <div class="switch">
+                                        <div class="switch__marker"></div>
+                                    </div>
+                                </div>
+                                <h2>Pendente</h2>
+                            </label>
+                            <button class="edit-button" title="Editar">
+                                <img src="../images/icon-edit.svg" alt="Ícone de lápis">
+                            </button>
+                        </div>
+                        <div class="accordeon-item__content">
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+    
+<!-- SEÇÃO PAGAMENTOS -->
+            <section id="pagamentos">
+            </section>
+
+<!-- SEÇÃO AJUDA -->
+            <section id="ajuda">
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

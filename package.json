@@ -1,0 +1,8 @@
+{
+  "name": "imprima-x-plugchat",
+  "version": "1.0.0",
+  "description": "Extensão para integrar ImprimaStore e PlugChat",
+  "main": "index.js",
+  "author": "Filipe Duarte",
+  "license": "MIT"
+}
