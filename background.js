@@ -1,4 +1,4 @@
-import { API_KEY } from "./scripts/config";
+import { API_KEY } from "config.env";
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse)
