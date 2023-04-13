@@ -4,16 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="fontawesome/css/fontawesome.min.css">
-    <link rel="stylesheet" href="fontawesome/css/solid.min.css">
     <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="icons.css">
 </head>
 <body>
     <div id="popup-container">
 <!-- MENU DE NAVEGAÇÃO -->
         <nav>
-            <button data-target="#home" title="Início" class="fa-solid fa-house active">
-
+            <button data-target="#home" title="Início" class="active">
+                <i class="gg-home-fill"></i>
             </button>
             <button data-target="#status" title="Alterar mensagens de troca de status">
                 Status
@@ -37,38 +36,20 @@
                     <h1>Gráfica Impacto Notificações</h1>
                 </div>
                 <div class="app-status">
-                    <table>
-                        <tr class="app-status__link">
-                            <td class="app-status__icon">
-                                <i class="fa-solid fa-rotate"></i>
-                            </td>
-                            <td class="app-status__label">
-                                Conexão com o site:
-                            </td>
-                            <td class="app-status__status">
-                                <span class="loading"></span>
-                                <span class="success">Ativa</span>
-                                <span class="fail">Inativa</span>
-                            </td>
-                        </tr>
-                        <tr class="app-status__sync">
-                            <td class="app-status__icon">
-                                <i class="fa-solid fa-link"></i>
-                            </td>
-                            <td class="app-status__label">
-                                Sincronização do Chrome:
-                            </td>
-                            <td class="app-status__status">
-                                <span class="loading"></span>
-                                <span class="success">Ativa</span>
-                                <span class="fail">Inativa</span>
-                            </td>
-                        </tr>
-                    </table>
-                    <footer>
-                        <small>Desenvolvido por <a href="http://filduarte.com.br" target="_blank">Filipe Duarte</a></small>
-                    </footer>
+                    <div class="app-status__status">
+                        <i class="gg-link"></i>
+                        <span class="status-label">Conexão com o site:</span>
+                        <span class="success">Ativa</span>
+                        <span class="fail">Inativa</span>
+                    </div>
+                    <div class="app-status__message">
+                        <span class="success">Tudo certo!</span>
+                        <span class="fail">Entre na pagina de administração para prosseguir!</span>
+                    </div>
                 </div>
+                <footer>
+                    <small>Desenvolvido por <a href="http://filduarte.com.br" target="_blank">Filipe Duarte</a></small>
+                </footer>
             </section>
 
 <!-- SEÇÃO STATUS -->
@@ -77,113 +58,111 @@
                     <div class="accordeon-item">
                         <div class="accordeon-item__header">
                             <label>
-                                <input type="checkbox" class="switch-input">
+                                <input type="checkbox" name="" class="switch-input">
                                 <div class="switch-ui">
                                     <div class="switch">
                                         <div class="switch__marker"></div>
                                     </div>
                                 </div>
-                                <h2>Pendente</h2>
                             </label>
-                            <button class="edit-button fa-solid fa-pencil" title="Editar">
+                            <h2 class="status-title"></h2>
+                            <button class="edit-button" title="Editar">
+                                <i class="gg-pencil-fill"></i>
+                            </button>
+                            <button class="cancel-button" title="Cancelar edição">
+                                <i class="gg-close"></i>
                             </button>
                         </div>
                         <div class="accordeon-item__content">
-                            <fieldset class="customer-message">
-                                <label class="message-type-label">
-                                    <span>Mensagem para o <strong>cliente</strong>:</span>
-                                    <select class="message-type">
-                                        <option value="text" selected>Texto</option>
-                                        <option value="image">Imagem</option>
-                                        <option value="sticker">Sticker</option>
-                                    </select>
-                                </label>
-                                <fieldset class="textarea">
-                                    <div class="textarea-toolbar">
-                                        <button title="Negrito" class="button-bold" data-wrapper-char="*">
-                                            <i class="fa-solid fa-bold"></i>
-                                        </button>
-                                        <button title="Itálico" class="button-italic" title="" data-wrapper-char="_">
-                                            <i class="fa-solid fa-italic"></i>
-                                        </button>
-                                        <button title="Tachado" class="button-strikethrough" data-wrapper-char="~">
-                                            <i class="fa-solid fa-strikethrough"></i>
-                                        </button>
-                                        <button title="Monoespaçado" class="button-monospace" data-wrapper-char="```">
-                                            <i class="fa-solid fa-font"></i>
-                                        </button>
-                                        <button title="Placeholders" class="button-placeholders">
-                                            {...} <i class="fa-solid fa-caret-down fa-xs"></i>
-                                        </button>
-                                        <ul class="placeholders">
-                                            <li class="placeholder-item" title="Nome do cliente">{nome}</li>
-                                            <li class="placeholder-item" title="Número do pedido">{npedido}</li>
-                                            <li class="placeholder-item" title="Título do produto">{titulo}</li>
-                                            <li class="placeholder-item" title="Cores">{cores}</li>
-                                            <li class="placeholder-item" title="Material">{material}</li>
-                                            <li class="placeholder-item" title="Formato">{formato}</li>
-                                            <li class="placeholder-item" title="Acabamento">{acabamento}</li>
-                                            <li class="placeholder-item" title="Revestimento">{revestimento}</li>
-                                            <li class="placeholder-item" title="Extras">{extras}</li>
-                                            <li class="placeholder-item" title="Quantidade">{qtde}</li>
-                                        </ul>
-                                    </div>
-                                    <textarea class="message-content"></textarea>
+                            <div class="wrapper">
+                                <fieldset class="customer-message">
+                                    <label class="message-type-label">
+                                        <span>Mensagem para o <strong>cliente</strong>:</span>
+                                        <select class="message-type">
+                                            <option value="text" selected>Texto</option>
+                                            <option value="image">Imagem</option>
+                                            <option value="sticker">Sticker</option>
+                                        </select>
+                                    </label>
+                                    <fieldset class="textarea">
+                                        <div class="textarea-toolbar">
+                                            <button title="Negrito" class="button-bold" data-wrapper-char="*">
+                                                N
+                                            </button>
+                                            <button title="Itálico" class="button-italic" title="" data-wrapper-char="_">
+                                                I
+                                            </button>
+                                            <button title="Tachado" class="button-strikethrough" data-wrapper-char="~">
+                                                T
+                                            </button>
+                                            <button title="Monoespaçado" class="button-monospace" data-wrapper-char="```">
+                                                M
+                                            </button>
+                                            <button title="Placeholders" class="button-placeholders">
+                                                {...} <i class="gg-caret-down"></i>
+                                            </button>
+                                            <ul class="placeholders">
+                                                <li class="placeholder-item" title="Nome do cliente">{nome}</li>
+                                                <li class="placeholder-item" title="Número do pedido">{npedido}</li>
+                                                <li class="placeholder-item" title="Título do produto">{titulo}</li>
+                                                <li class="placeholder-item" title="Cores">{cores}</li>
+                                                <li class="placeholder-item" title="Material">{material}</li>
+                                                <li class="placeholder-item" title="Formato">{formato}</li>
+                                                <li class="placeholder-item" title="Acabamento">{acabamento}</li>
+                                                <li class="placeholder-item" title="Revestimento">{revestimento}</li>
+                                                <li class="placeholder-item" title="Extras">{extras}</li>
+                                                <li class="placeholder-item" title="Quantidade">{qtde}</li>
+                                            </ul>
+                                        </div>
+                                        <textarea class="message-content"></textarea>
+                                    </fieldset>
                                 </fieldset>
-                                <fieldset class="filearea">
-                                    <input type="file" class="message-content">
-                                    <div class="file-preview"></div>
+                                <fieldset class="retailer-message">
+                                    <label class="message-type-label">
+                                        <span>Mensagem para o <strong>revendedor</strong>:</span>
+                                        <select class="message-type">
+                                            <option value="text" selected>Texto</option>
+                                            <option value="image">Imagem</option>
+                                            <option value="sticker">Sticker</option>
+                                        </select>
+                                    </label>
+                                    <fieldset class="textarea">
+                                        <div class="textarea-toolbar">
+                                            <button title="Negrito" class="button-bold" data-wrapper-char="*">
+                                                N
+                                            </button>
+                                            <button title="Itálico" class="button-italic" title="" data-wrapper-char="_">
+                                                I
+                                            </button>
+                                            <button title="Tachado" class="button-strikethrough" data-wrapper-char="~">
+                                                T
+                                            </button>
+                                            <button title="Monoespaçado" class="button-monospace" data-wrapper-char="```">
+                                                M
+                                            </button>
+                                            <button title="Placeholders" class="button-placeholders">
+                                                {...} <i class="gg-caret-down"></i>
+                                            </button>
+                                            <ul class="placeholders">
+                                                <li class="placeholder-item" title="Nome do cliente">{nome}</li>
+                                                <li class="placeholder-item" title="Número do pedido">{npedido}</li>
+                                                <li class="placeholder-item" title="Título do produto">{titulo}</li>
+                                                <li class="placeholder-item" title="Cores">{cores}</li>
+                                                <li class="placeholder-item" title="Material">{material}</li>
+                                                <li class="placeholder-item" title="Formato">{formato}</li>
+                                                <li class="placeholder-item" title="Acabamento">{acabamento}</li>
+                                                <li class="placeholder-item" title="Revestimento">{revestimento}</li>
+                                                <li class="placeholder-item" title="Extras">{extras}</li>
+                                                <li class="placeholder-item" title="Quantidade">{qtde}</li>
+                                            </ul>
+                                        </div>
+                                        <textarea class="message-content"></textarea>
+                                    </fieldset>
                                 </fieldset>
-                            </fieldset>
-                            <fieldset class="retailer-message">
-                                <label class="message-type-label">
-                                    <span>Mensagem para o <strong>revendedor</strong>:</span>
-                                    <select class="message-type">
-                                        <option value="text" selected>Texto</option>
-                                        <option value="image">Imagem</option>
-                                        <option value="sticker">Sticker</option>
-                                    </select>
-                                </label>
-                                <fieldset class="textarea">
-                                    <div class="textarea-toolbar">
-                                        <button title="Negrito" class="button-bold" data-wrapper-char="*">
-                                            <i class="fa-solid fa-bold"></i>
-                                        </button>
-                                        <button title="Itálico" class="button-italic" title="" data-wrapper-char="_">
-                                            <i class="fa-solid fa-italic"></i>
-                                        </button>
-                                        <button title="Tachado" class="button-strikethrough" data-wrapper-char="~">
-                                            <i class="fa-solid fa-strikethrough"></i>
-                                        </button>
-                                        <button title="Monoespaçado" class="button-monospace" data-wrapper-char="```">
-                                            <i class="fa-solid fa-font"></i>
-                                        </button>
-                                        <button title="Placeholders" class="button-placeholders">
-                                            {...} <i class="fa-solid fa-caret-down fa-xs"></i>
-                                        </button>
-                                        <ul class="placeholders">
-                                            <li class="placeholder-item" title="Nome do cliente">{nome}</li>
-                                            <li class="placeholder-item" title="Número do pedido">{npedido}</li>
-                                            <li class="placeholder-item" title="Título do produto">{titulo}</li>
-                                            <li class="placeholder-item" title="Cores">{cores}</li>
-                                            <li class="placeholder-item" title="Material">{material}</li>
-                                            <li class="placeholder-item" title="Formato">{formato}</li>
-                                            <li class="placeholder-item" title="Acabamento">{acabamento}</li>
-                                            <li class="placeholder-item" title="Revestimento">{revestimento}</li>
-                                            <li class="placeholder-item" title="Extras">{extras}</li>
-                                            <li class="placeholder-item" title="Quantidade">{qtde}</li>
-                                        </ul>
-                                    </div>
-                                    <textarea class="message-content"></textarea>
-                                </fieldset>
-                                <fieldset class="filearea">
-                                    <input type="file" class="message-content">
-                                    <div class="file-preview"></div>
-                                </fieldset>
-                            </fieldset>
-                            <button title="Salvar" class="success">
-                                <i class="fa-solid fa-floppy-disk"></i>SALVAR
-                            </button>
+                                <button title="Salvar" class="success">
+                                    <i class="gg-floppy-disk"></i>SALVAR
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -191,6 +170,118 @@
     
 <!-- SEÇÃO PAGAMENTOS -->
             <section id="pagamentos">
+                <div class="accordeon">
+                    <div class="accordeon-item">
+                        <div class="accordeon-item__header">
+                            <label>
+                                <input type="checkbox" name="" class="switch-input">
+                                <div class="switch-ui">
+                                    <div class="switch">
+                                        <div class="switch__marker"></div>
+                                    </div>
+                                </div>
+                            </label>
+                            <h2 class="status-title"></h2>
+                            <button class="edit-button" title="Editar">
+                                <i class="fa-solid fa-pencil"></i>
+                            </button>
+                            <button class="cancel-button" title="Cancelar edição">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="accordeon-item__content">
+                            <div class="wrapper">
+                                <fieldset class="customer-message">
+                                    <label class="message-type-label">
+                                        <span>Mensagem para o <strong>cliente</strong>:</span>
+                                        <select class="message-type">
+                                            <option value="text" selected>Texto</option>
+                                            <option value="image">Imagem</option>
+                                            <option value="sticker">Sticker</option>
+                                        </select>
+                                    </label>
+                                    <fieldset class="textarea">
+                                        <div class="textarea-toolbar">
+                                            <button title="Negrito" class="button-bold" data-wrapper-char="*">
+                                                <i class="fa-solid fa-bold"></i>
+                                            </button>
+                                            <button title="Itálico" class="button-italic" title="" data-wrapper-char="_">
+                                                <i class="fa-solid fa-italic"></i>
+                                            </button>
+                                            <button title="Tachado" class="button-strikethrough" data-wrapper-char="~">
+                                                <i class="fa-solid fa-strikethrough"></i>
+                                            </button>
+                                            <button title="Monoespaçado" class="button-monospace" data-wrapper-char="```">
+                                                <i class="fa-solid fa-font"></i>
+                                            </button>
+                                            <button title="Placeholders" class="button-placeholders">
+                                                {...} <i class="fa-solid fa-caret-down fa-xs"></i>
+                                            </button>
+                                            <ul class="placeholders">
+                                                <li class="placeholder-item" title="Nome do cliente">{nome}</li>
+                                                <li class="placeholder-item" title="Número do pedido">{npedido}</li>
+                                                <li class="placeholder-item" title="Título do produto">{titulo}</li>
+                                                <li class="placeholder-item" title="Cores">{cores}</li>
+                                                <li class="placeholder-item" title="Material">{material}</li>
+                                                <li class="placeholder-item" title="Formato">{formato}</li>
+                                                <li class="placeholder-item" title="Acabamento">{acabamento}</li>
+                                                <li class="placeholder-item" title="Revestimento">{revestimento}</li>
+                                                <li class="placeholder-item" title="Extras">{extras}</li>
+                                                <li class="placeholder-item" title="Quantidade">{qtde}</li>
+                                            </ul>
+                                        </div>
+                                        <textarea class="message-content message-text-content"></textarea>
+                                    </fieldset>
+                                </fieldset>
+                                <fieldset class="retailer-message">
+                                    <label class="message-type-label">
+                                        <span>Mensagem para o <strong>revendedor</strong>:</span>
+                                        <select class="message-type">
+                                            <option value="text" selected>Texto</option>
+                                            <option value="image">Imagem</option>
+                                            <option value="sticker">Sticker</option>
+                                        </select>
+                                    </label>
+                                    <fieldset class="textarea">
+                                        <div class="textarea-toolbar">
+                                            <button title="Negrito" class="button-bold" data-wrapper-char="*">
+                                                <i class="fa-solid fa-bold"></i>
+                                            </button>
+                                            <button title="Itálico" class="button-italic" title="" data-wrapper-char="_">
+                                                <i class="fa-solid fa-italic"></i>
+                                            </button>
+                                            <button title="Tachado" class="button-strikethrough" data-wrapper-char="~">
+                                                <i class="fa-solid fa-strikethrough"></i>
+                                            </button>
+                                            <button title="Monoespaçado" class="button-monospace" data-wrapper-char="```">
+                                                <i class="fa-solid fa-font"></i>
+                                            </button>
+                                            <button title="Placeholders" class="button-placeholders">
+                                                {...} <i class="fa-solid fa-caret-down fa-xs"></i>
+                                            </button>
+                                            <ul class="placeholders">
+                                                <li class="placeholder-item" title="Nome do cliente">{nome}</li>
+                                                <li class="placeholder-item" title="Número do pedido">{npedido}</li>
+                                                <li class="placeholder-item" title="Título do produto">{titulo}</li>
+                                                <li class="placeholder-item" title="Cores">{cores}</li>
+                                                <li class="placeholder-item" title="Material">{material}</li>
+                                                <li class="placeholder-item" title="Formato">{formato}</li>
+                                                <li class="placeholder-item" title="Acabamento">{acabamento}</li>
+                                                <li class="placeholder-item" title="Revestimento">{revestimento}</li>
+                                                <li class="placeholder-item" title="Extras">{extras}</li>
+                                                <li class="placeholder-item" title="Quantidade">{qtde}</li>
+                                            </ul>
+                                        </div>
+                                        <textarea class="message-content"></textarea>
+                                    </fieldset>
+                                </fieldset>
+                                <button title="Salvar" class="success">
+                                    <i class="fa-solid fa-floppy-disk"></i>SALVAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
 <!-- SEÇÃO AJUDA -->

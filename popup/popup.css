@@ -108,7 +108,6 @@ nav button {
 
 nav button:first-child {
     max-width: 40px;
-    font-size: 1rem;
 }
 
 nav button svg {
@@ -154,6 +153,7 @@ section {
     width: 25%;
     height: 100%;
     overflow-y: auto;
+    scroll-behavior: smooth;
 }
 
 /*
@@ -178,34 +178,43 @@ section {
     text-align: center;
 }
 
-#home table {
-    width: 100%;
+#home .app-status {
+    padding: 8px;
     font-size: 0.75rem;
     border: 1px solid var(--color-gray);
     border-radius: 5px;
-    border-spacing: 0;
-}
-
-#home td {
-    height: 32px;
-    vertical-align: center;
-}
-
-#home tr + tr td {
-    border-top: 1px solid var(--color-gray);
-}
-
-#home .app-status__icon {
-    padding: 0;
-    width: 32px;
-    font-size: 0.875rem;
-    text-align: center;
 }
 
 #home .app-status__status {
-    padding-right: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#home .app-status i {
+    margin-right: 8px;
+}
+
+#home .app-status .status-label {
+    width: 100%;
+}
+
+#home .app-status span:not(.status-label) {
     font-weight: bold;
-    text-align: right;
+    display: none;
+}
+
+#home .app-status span.active {
+    display: block;
+}
+
+#home .app-status__message .success,
+#home .app-status__message .fail {
+    margin-top: 8px;
+    padding: 8px;
+    text-align: center;
+    color: var(--color-foreground);
+    border-radius: 5px;
 }
 
 /*
@@ -217,6 +226,7 @@ section {
 
 .accordeon-item__header {
     display: flex;
+    align-items: center;
     height: 42px;
     padding-left: 16px;
 }
@@ -225,8 +235,6 @@ section {
     display: flex;
     align-items: center;
     position: relative;
-    width: 100%;
-    cursor: pointer;
 }
 
 .accordeon-item__header input {
@@ -234,6 +242,8 @@ section {
     height: 24px;
     margin-right: 12px;
     opacity: 0;
+    z-index: 1;
+    cursor: pointer;
 }
 
 .switch-ui {
@@ -281,11 +291,20 @@ section {
 }
 
 .accordeon-item__header h2 {
+    width: 100%;
     font-size: 1em;
+    color: var(--color-dark-gray);
+}
+
+.accordeon-item__header:has(.switch-input:checked) h2 {
+    color: var(--color-foreground);
 }
 
 .accordeon-item__header button {
-    width: 42px;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    min-width: 42px;
     height: 42px;
     border: 0;
     font-size: 1rem;
@@ -293,20 +312,39 @@ section {
     opacity: .33;
     cursor: pointer;
     transition: opacity 300ms;
+
 }
 
 .accordeon-item__header button:hover {
     opacity: 1;
 }
 
-.accordeon-item.active .accordeon-item__header button {
+.accordeon-item .accordeon-item__header button {
+    --ggs: 0.875;
     display: none;
 }
 
+.accordeon-item:not(.active):has(.switch-input:checked) .accordeon-item__header .edit-button {
+    display: flex;
+}
+
+.accordeon-item.active .accordeon-item__header .cancel-button {
+    display: flex;
+}
+
 .accordeon-item__content {
-    height: calc(var(--size-popup-height) - 42px - 42px);
-    padding: 16px;
+    height: 0;
     background-color: var(--color-light-gray);
+    overflow: hidden;
+    transition: height 500ms ease;
+}
+
+.accordeon-item.active .accordeon-item__content {
+    height: calc(var(--size-popup-height) - 41px - 42px);
+}
+
+.accordeon-item__content .wrapper {
+    padding: 16px;
 }
 
 .accordeon-item__content > fieldset {
@@ -344,6 +382,25 @@ section {
 
 .textarea button:hover {
     background-color: var(--color-gray);
+}
+
+.textarea .button-bold {
+    text-shadow: 0 0 1px var(--color-foreground);
+}
+
+.textarea .button-italic {
+    padding-left: 2px;
+    font-family: serif;
+    font-style: italic;
+}
+
+.textarea .button-strikethrough {
+    text-decoration: line-through;
+}
+
+.textarea .button-monospace {
+    font-family: monospace;
+    text-shadow: 0 0 #000;
 }
 
 .textarea .button-placeholders {
@@ -404,7 +461,8 @@ textarea.message-content {
 }
 
 button.success {
-    margin-top: 2px;
+    --ggs: 0.875;
+    margin-top: 8px;
     width: 100%;
     height: 32px;
     font-weight: bold;
@@ -424,10 +482,7 @@ button.success i {
 }
 
 .retailer-message {
+    margin-top: 10px;
     padding-top: 12px;
     border-top: 1px solid var(--color-gray);
-}
-
-main {
-    transform: translateX(-25%) !important;
 }
