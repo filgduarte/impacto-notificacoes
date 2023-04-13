@@ -13,20 +13,23 @@ async function init()
     let appData = storageData.appData;
 
     if (appData == false)
-    {
-        throw "Não foi possível recuperar os dados";
+    {        
+        const errorMessage = 'Não foi possível recuperar os dados das notificações.'
+        showAlert(errorMessage, 'danger');
+
+        throw errorMessage;
     }
+
+    // const statusSelects = document.querySelectorAll('select.pedido-item-status-alterar');
+
+    // if (statusSelects)
+    // {
+    //     statusSelects.forEach((statusSelect) =>
+    //     {
+    //         statusSelect.addEventListener('change', handleStatusChange);
+    //     });
+    // }
 }
-
-// const statusSelects = document.querySelectorAll('select.pedido-item-status-alterar');
-
-// if (statusSelects)
-// {
-//     statusSelects.forEach((statusSelect) =>
-//     {
-//         statusSelect.addEventListener('change', handleStatusChange);
-//     });
-// }
 
 async function getAppData()
 {
@@ -218,4 +221,44 @@ function handleResponse(message)
 function handleError(error)
 {
     console.log(error);
+}
+
+function showAlert(message, type) {
+    const container = document.getElementById('painel-geral');
+    const alertElement = document.createElement('div');
+    const alertParagraph = document.createElement('p');
+    const alertText = document.createTextNode(message);
+    const alertButton = document.createElement('button');
+    const alertStyle = {
+        'position' : 'fixed',
+        'top' : '10px',
+        'right' : '10px',
+        'font-weight' : 'bold',
+        'border-radius' : '5px',
+        'box-shadow' : '0 0 0 0 #ea2e4d',
+        'animation' : 'pulse 1000ms infinite'
+    }
+    const alertButtonStyle = {
+        'padding' : '8px',
+        'color' : '#FFF',
+        'background-color' : 'transparent',
+        'border' : 'none',
+    }
+
+    Object.assign(alertElement.style, alertStyle);
+    Object.assign(alertButton.style, alertButtonStyle);
+    alertParagraph.style.padding = '8px';
+
+    alertElement.classList.add('flex', `bg-${type}`);
+    alertButton.classList.add('fa', 'fa-times');
+    alertButton.setAttribute('type', 'button');
+    alertButton.setAttribute('aria-label', 'Close');
+    alertButton.addEventListener('click', function() {
+        container.removeChild(alertElement);
+    });
+    alertParagraph.appendChild(alertText);
+    alertElement.appendChild(alertParagraph);
+    alertElement.appendChild(alertButton);
+
+    container.appendChild(alertElement);
 }

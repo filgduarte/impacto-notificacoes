@@ -44,9 +44,25 @@ async function init() {
             );
         
     const storageData = await chrome.storage.sync.get(['status', 'payments']);
-    
+ 
     generateFields(storageData.status, 'status', '#status');
     generateFields(storageData.payments, 'payment', '#pagamentos');
+
+    document.addEventListener('click', function(event)
+    {
+        if (event.target.classList.contains('button-placeholders'))
+        {
+            return;
+        }
+
+        const activePlaceholderButtons = document.querySelectorAll('.button-placeholders.active');
+        if (activePlaceholderButtons.length > 0)
+        {
+            activePlaceholderButtons.forEach(button => {
+                button.classList.remove('active');
+            })
+        }
+    })
 }
 
 function moveActiveTabMarker()
@@ -114,6 +130,33 @@ async function generateFields(fields, category, sectionId)
                 }
             );
         
+        accordeonItem.querySelectorAll('button.format-item').forEach(formatButton => {
+            const buttonParent = formatButton.closest('.textarea');
+            const targetTextarea = buttonParent.querySelector('.message-content');
+            const wrapperChar = formatButton.dataset.wrapperChar;
+            formatButton.addEventListener('click', function()
+            {
+                wrapText(targetTextarea, wrapperChar);
+            });
+        });
+
+        accordeonItem.querySelectorAll('.button-placeholders').forEach(placeholderButton => {
+            placeholderButton.addEventListener('click', function()
+            {
+                placeholderButton.classList.toggle('active');
+            });
+        });
+
+        accordeonItem.querySelectorAll('li.placeholder-item').forEach(item => {
+            const itemParent = item.closest('.textarea');
+            const targetTextarea = itemParent.querySelector('.message-content');
+            const placeholder = item.innerText;
+            item.addEventListener('click', function()
+            {
+                addPlaceholder(targetTextarea, placeholder);
+            });
+        });
+        
         accordeonItem.querySelector('button.success')
             .addEventListener('click',() => handleSave(itemDataKey, accordeonItem));
 
@@ -162,4 +205,26 @@ async function handleSave(key, item) {
 
     await chrome.storage.sync.set( {[key] : dataToSave} );
     document.querySelector('.accordeon-item.active')?.classList.remove('active');
+}
+
+function wrapText(target, wrapperChar) {
+    const selectionStart = target.selectionStart;
+    const selectionEnd = target.selectionEnd;
+    let textOriginalValue = target.value;
+
+    target.value = textOriginalValue.slice(0, selectionStart)
+                   + wrapperChar
+                   + textOriginalValue.slice(selectionStart, selectionEnd)
+                   + wrapperChar
+                   + textOriginalValue.slice(selectionEnd);
+}
+
+function addPlaceholder(target, placeholder) {
+    const selectionStart = target.selectionStart;
+    const selectionEnd = target.selectionEnd;
+    let textOriginalValue = target.value;
+
+    target.value = textOriginalValue.slice(0, selectionStart)
+                   + placeholder
+                   + textOriginalValue.slice(selectionEnd);
 }

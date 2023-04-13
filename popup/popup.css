@@ -415,6 +415,7 @@ section {
 .textarea-toolbar .placeholders {
     display: none;
     position: absolute;
+    width: 177px;
     top: 25px;
     left: 112px;
     list-style-type: none;
@@ -422,11 +423,13 @@ section {
     border: 1px solid var(--color-dark-gray);
 }
 
-.textarea-toolbar .placeholders.active {
-    display: block;
+.textarea-toolbar .button-placeholders.active ~ .placeholders {
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .textarea-toolbar .placeholder-item {
+    width: 50%;
     font-size: 0.75rem;
     padding: 4px 8px;
     cursor: pointer;
