@@ -4,27 +4,39 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="popup.css">
-    <link rel="stylesheet" href="icons.css">
+    <link rel="stylesheet" href="css/popup.css">
+    <link rel="stylesheet" href="css/icons.css">
 </head>
 <body>
     <div id="popup-container">
+<!-- CABEÇALHO -->
+        <header>
+
 <!-- MENU DE NAVEGAÇÃO -->
-        <nav>
-            <button data-target="#home" title="Início" class="active">
-                <i class="gg-home-fill"></i>
-            </button>
-            <button data-target="#status" title="Alterar mensagens de troca de status">
-                Status
-            </button>
-            <button data-target="#pagamentos" title="Alterar mensagens de pagamento">
-                Pagamentos
-            </button>
-            <button data-target="#ajuda" title="Ajuda">
-                Ajuda
-            </button>
-            <div id="active-tab-marker"></div>
-        </nav>
+            <nav>
+                <button data-target="#home" title="Início" class="active">
+                    <i class="gg-home-fill"></i>
+                </button>
+                <button data-target="#status" title="Alterar mensagens de troca de status">
+                    Status
+                </button>
+                <button data-target="#pagamentos" title="Alterar mensagens de pagamento">
+                    Pagamentos
+                </button>
+                <button data-target="#configuracoes" title="Configurações">
+                    Configurações
+                </button>
+                <div id="active-tab-marker"></div>
+            </nav>
+
+<!-- SENHA -->
+            <form name="lock" id="lock-form">
+                <input type="password" name="password" class="password-field" placeholder="Digite a senha para desbloquear">
+                <button type="submit" title="Desbloquear">
+                    <i class="gg-lock-unlock"></i>
+                </button>
+            </form>
+        </header>
 
 <!-- CONTEÚDO -->
         <main>
@@ -35,18 +47,56 @@
                     <img src="../images/icon-128.png" alt="Logo Gráfica Impacto Notificações">
                     <h1>Gráfica Impacto Notificações</h1>
                 </div>
-                <div class="app-status">
-                    <div class="app-status__status">
-                        <i class="gg-link"></i>
-                        <span class="status-label">Conexão com o site:</span>
-                        <span class="success">Ativa</span>
-                        <span class="fail">Inativa</span>
-                    </div>
-                    <div class="app-status__message">
-                        <span class="success">Tudo certo!</span>
-                        <span class="fail">Entre na pagina de administração para prosseguir!</span>
-                    </div>
-                </div>
+                <ul class="app-status">
+                    <li class="app-status__key">
+                        <span class="status-icon">
+                            <i class="gg-key"></i>
+                        </span>
+                        <span class="status-label">
+                            Chave da API
+                        </span>
+                        <span class="status-info">
+                            <span class="success" title="Chave da API do Plug Chat salva.">OK</span>
+                            <span class="fail active" title="A chave da API do Plug Chat não foi informada.">Falha</span>
+                        </span>
+                    </li>
+                    <li class="app-status__sync">
+                        <span class="status-icon">
+                            <i class="gg-sync"></i>
+                        </span>
+                        <span class="status-label">
+                            Sincronização
+                        </span>
+                        <span class="status-info">
+                            <span class="success" title="O navegador está com a sincronização ativada.">OK</span>
+                            <span class="fail critical active" title="A sincronização não está ativada, faça login no navegador.">Falha</span>
+                        </span>
+                    </li>
+                    <li class="app-status__link">
+                        <span class="status-icon">
+                            <i class="gg-link"></i>
+                        </span>
+                        <span class="status-label">
+                            Conexão com o site
+                        </span>
+                        <span class="status-info">
+                            <span class="success" title="O painel de administração do site está aberto no navegador.">OK</span>
+                            <span class="warning active" title="O painel de administração do site não está aberto no navegador. Você ainda pode alterar as mensagens, mas não é possível verificar se os status e formas de pagamento estão atualizados.">Falha</span>
+                        </span>
+                    </li>
+                    <li class="app-status__last-change">
+                        <span class="status-icon">
+                            <i class="gg-time"></i>
+                        </span>
+                        <span class="status-label">
+                            Última modificação
+                        </span>
+                        <span class="status-info">
+                            <span class="success date" title="Data da última modificação das mensagens."></span>
+                            <span class="fail active" title="Nenhuma modificação registrada.">Nunca</span>
+                        </span>
+                    </li>
+                </ul>
                 <footer>
                     <small>Desenvolvido por <a href="http://filduarte.com.br" target="_blank">Filipe Duarte</a></small>
                 </footer>
@@ -284,14 +334,41 @@
                 </div>
             </section>
 
-<!-- SEÇÃO AJUDA -->
-            <section id="ajuda">
+<!-- SEÇÃO CONFIGURAÇÕES -->
+            <section id="configuracoes">
+                <form name="configuracoes">
+                    <fieldset>
+                        <legend>Alterar senha de acesso</legend>
+                        <div class="form-field">
+                            <label for="new-pass-field">Nova senha:</label>
+                            <input type="password" name="newPassword" id="new-pass-field">
+                        </div>
+                        <div class="form-field">
+                            <label for="confirm-pass-field">Confirme a nova senha:</label>
+                            <input type="password" name="newPasswordConfirm" id="confirm-pass-field">
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>API Plug Chat</legend>
+                        <div class="form-field">
+                            <label for="token-field">Token:</label>
+                            <input type="password" name="plugchatToken" id="token-field">
+                        </div>
+                    </fieldset>
+                    <div class="form-field">
+                        <label for="password-field">Para salvar, digite sua senha atual:</label>
+                        <input type="password" name="password" id="password-field">
+                    </div>
+                    <button type="submit" title="Salvar" class="success">
+                        <i class="gg-floppy-disk"></i>SALVAR
+                    </button>
+                </form>
             </section>
 
         </main>
 
     </div>
 
-    <script src="popup.js"></script>
+    <script src="js/popup.js"></script>
 </body>
 </html>

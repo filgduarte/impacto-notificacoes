@@ -1,16 +1,17 @@
-import { API_KEY } from "../config.js";
-
 chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse)
+    async function(request, sender, sendResponse)
     {
         if (request.contentScriptQuery == 'sendText')
         {
+            let storageData = await chrome.storage.sync.get('appData');
+            const apiKey = storageData.appData.plugchatToken;
+
             fetch("https://www.plugchat.com.br/api/whatsapp/send-text",
             {
                 "method": "POST",
                 "headers":
                 {
-                    "authorization": API_KEY,
+                    "authorization": apiKey,
                     "Content-type": "application/json; charset=UTF-8"
                 },
                 "body":

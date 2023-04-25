@@ -14,7 +14,8 @@
     --color-gray: #DEDEDE;
     --color-light-gray: #EFEFEF;
     --color-success: #00BB00;
-    --color-fail: #BB0000;
+    --color-warning: #FFAA00;
+    --color-fail: #DD0000;
     --size-popup-width: 340px;
     --size-popup-height: 550px;
 }
@@ -49,28 +50,23 @@ fieldset {
     border: none;
 }
 
-footer {
-    display: block;
-    position: absolute;
-    left: 0;
-    bottom: 16px;
-    width: 100%;
-    text-align: center;
-    color: var(--color-gray);
-}
-
-footer a {
-    color: var(--color-gray);
-}
-
 .success {
     color: var(--color-success);
     fill: var(--color-success);
 }
 
+.warning {
+    color: var(--color-warning);
+    fill: var(--color-warning);
+}
+
 .fail {
     color: var(--color-fail);
     fill: var(--color-fail);
+}
+
+.hide {
+    display: none;
 }
 
 #popup-container {
@@ -82,8 +78,11 @@ footer a {
     overflow: hidden;
 }
 
-nav {
-    display: flex;
+/*
+* CABEÇALHO
+*/
+
+header {
     position: fixed;
     top: 0;
     width: 100%;
@@ -91,10 +90,55 @@ nav {
     background: var(--color-foreground);
 }
 
+/*
+* LOCK FORM
+*/
+
+#lock-form {
+    display: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 40px;
+    background: var(--color-foreground);
+}
+
+#lock-form .password-field {
+    padding: 0 8px;
+    width: 100%;
+    color: var(--color-background);
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+#lock-form button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    min-width: 40px;
+    color: var(--color-background);
+    background: var(--color-highlight);
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+}
+
+/*
+* MENU
+*/
+
+nav {
+    display: flex;
+    height: 100%;
+    background: var(--color-foreground);
+}
+
 nav button {
+    flex-grow: 1;
     display: grid;
     place-items: center;
-    width: 100%;
     height: 100%;
     text-align: center;
     text-decoration: none;
@@ -141,6 +185,10 @@ nav button.active svg {
                 left 300ms ease;
 }
 
+/*
+* CONTEÚDO
+*/
+
 main {
     position: relative;
     display: flex;
@@ -160,6 +208,8 @@ section {
 * HOME
 */
 #home {
+    display: flex;
+    flex-direction: column;
     position: relative;
     padding: 16px;
 }
@@ -169,7 +219,7 @@ section {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 350px;
+    height: 100%;
 }
 
 #home .logo h1 {
@@ -179,42 +229,66 @@ section {
 }
 
 #home .app-status {
-    padding: 8px;
+    list-style-type: none;
     font-size: 0.75rem;
     border: 1px solid var(--color-gray);
     border-radius: 5px;
 }
 
-#home .app-status__status {
+#home .app-status li {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 8px;
 }
 
-#home .app-status i {
+#home .app-status li + li {
+    border-top: 1px solid var(--color-gray);
+}
+
+#home .app-status .status-icon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     margin-right: 8px;
+    min-width: 16px;
 }
 
 #home .app-status .status-label {
-    width: 100%;
-}
-
-#home .app-status span:not(.status-label) {
-    font-weight: bold;
-    display: none;
+    width: 50%;
 }
 
 #home .app-status span.active {
     display: block;
 }
 
-#home .app-status__message .success,
-#home .app-status__message .fail {
-    margin-top: 8px;
-    padding: 8px;
-    text-align: center;
-    color: var(--color-foreground);
+#home .app-status .status-info {
+    width: 50%;
+    text-align: right;
+    cursor: help;
+}
+
+#home .app-status .status-info .success,
+#home .app-status .status-info .warning,
+#home .app-status .status-info .fail {
+    display: none;
+    font-weight: bold;
     border-radius: 5px;
+}
+
+#home .app-status .status-info .active {
+    display: block;
+}
+
+footer {
+    display: block;
+    margin-top: 16px;
+    text-align: center;
+    color: var(--color-gray);
+}
+
+footer a {
+    color: var(--color-gray);
 }
 
 /*
@@ -465,7 +539,6 @@ textarea.message-content {
 
 button.success {
     --ggs: 0.875;
-    margin-top: 8px;
     width: 100%;
     height: 32px;
     font-weight: bold;
@@ -488,4 +561,78 @@ button.success i {
     margin-top: 10px;
     padding-top: 12px;
     border-top: 1px solid var(--color-gray);
+}
+
+/*
+* CONFIGURAÇÕES
+*/
+#configuracoes form {
+    padding: 16px;
+}
+
+#configuracoes .form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+#configuracoes legend {
+    margin-bottom: 16px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+#configuracoes fieldset {
+    padding-bottom: 16px;;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--color-gray);
+}
+
+/*
+* LOCKED STATE
+*/
+
+#popup-container.locked nav,
+#popup-container.locked section:not(#home) {
+    display: none !important;
+}
+
+#popup-container.locked #lock-form {
+    display: flex !important;
+}
+
+/*
+* NO PASSWORD STATE
+*/
+
+#popup-container.no-password nav,
+#popup-container.no-password #lock-form,
+#popup-container.no-password section:not(#configuracoes) {
+    display: none !important;
+}
+
+#popup-container.no-password #configuracoes form > .form-field {
+    display: none !important;
+}
+
+/*
+* NO SYNC STATE
+*/
+
+#popup-container.locked nav,
+#popup-container.locked section:not(#home) {
+    display: none !important;
+}
+
+.critical {
+    animation: fade-out-in 500ms ease-in-out infinite alternate;
+}
+
+@keyframes fade-out-in {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0.25;
+    }
 }

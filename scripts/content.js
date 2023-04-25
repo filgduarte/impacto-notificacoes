@@ -67,12 +67,16 @@ async function getDataFromSite() {
             plugchatToken: 'string',
         }
         status: [
-            'nome do status',
+            'nome do status 1',
+            'nome do status 2',
+            ...
         ],
         payments: [
-            'nome da forma de pagamento',
+            'nome da forma de pagamento 1',
+            'nome da forma de pagamento 2',
+            ...
         ],
-        status_nomeDoStatus: {
+        status_nomeDoStatus1: {
             enabled: boolean,
             customerMessage: {
                 type: 'string',
@@ -82,15 +86,18 @@ async function getDataFromSite() {
                 type: 'string',
                 content: 'string',
             },
-        }
-        payment_nomeDaFormaDePagamento: {
+        },
+        ...,
+        payment_nomeDaFormaDePagamento1: {
             enabled: boolean,
             customerMessage: 'string',
             retailerMessage: 'string'
-        }
+        },
         lastSentMessages: {
             '5521999999999' : '2021-01-01T12:00:00'
-        }
+        },
+        ...,
+        lastChange: '2021-01-01T12:00:00.458Z'
 
         PARA NÃO ENVIAR MENSAGENS EM SEQUÊNCIA PARA UM MESMO NÚMERO:
         Criar setInterval no background.js para apagar de x em x minutos

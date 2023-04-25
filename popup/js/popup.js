@@ -1,0 +1,437 @@
+window.onload = async function()
+{
+    const storageData = await chrome.storage.sync.get(null);
+    if (Object.keys(storageData).length > 0 ) {
+        init();
+        return;
+    }
+}
+
+async function init() {
+    const storageData = await chrome.storage.sync.get(['status', 'payments', 'appData']);
+
+    getStatus();
+    handleLock();
+    handleConfigSubmit();
+    setTabsActions();
+    moveActiveTabMarker();
+    generateFields(storageData.status, 'status', '#status');
+    generateFields(storageData.payments, 'payment', '#pagamentos');
+    handlePlaceholderButtons();
+    document.getElementById('token-field').value = storageData.appData.plugchatToken;    
+}
+
+async function getStatus() {
+    const storageData = await chrome.storage.sync.get(['appData', 'lastChange']);
+
+    let hasApiToken = false;
+    let hasPassword = false;
+    if ( storageData.hasOwnProperty('appData') )
+    {
+
+        if ( storageData.appData.plugchatToken != '' )
+        {
+            hasApiToken = true;
+            const apikeyStatusSpan = document.querySelector('.app-status__key .status-info');
+            apikeyStatusSpan.querySelector('.fail').classList.remove('active');
+            apikeyStatusSpan.querySelector('.success').classList.add('active');
+        }
+
+        if ( storageData.appData.password != '' )
+        {
+            hasPassword = true;
+        }
+    }
+
+    if ( hasApiToken == false || hasPassword == false )
+    {
+        // Se não houver chave de API ou senha configurada,
+        // manda pra tela de configuração
+        document.getElementById('popup-container').classList.add('no-password');
+        return
+    }
+    else
+    {
+        // Se houver, exibe apenas a tela inicial
+        // e campo de senha para liberar o resto
+        document.getElementById('popup-container').classList.remove('no-password');
+        document.getElementById('popup-container').classList.add('locked');
+    }
+
+    if ( storageData.hasOwnProperty('lastChange') )
+    {
+        if ( storageData.lastChange != '' )
+        {
+            const lastChange = new Date(storageData.lastChange);
+            const lastChangeDate = lastChange.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            });
+            const lastChangeTime = lastChange.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            });
+
+            const lastChangeStatusSpan = document.querySelector('.app-status__last-change .status-info');
+            const lastChangeDateSpan = lastChangeStatusSpan.querySelector('.date');
+            lastChangeStatusSpan.querySelector('.fail').classList.remove('active');
+            lastChangeDateSpan.innerText = lastChangeDate + ' às ' + lastChangeTime;
+            lastChangeDateSpan.classList.add('active');
+        }
+    }
+
+    chrome.identity.getProfileUserInfo(function(data)
+    {
+        if (data.id)
+        {
+            const syncStatusSpan = document.querySelector('.app-status__sync .status-info');
+            syncStatusSpan.querySelector('.fail').classList.remove('active');
+            syncStatusSpan.querySelector('.success').classList.add('active');
+        }
+        else
+        {
+            // Se o usuário não estiver logado no navegador
+            // trava a utilização do popup e exibe mensagem
+            document.getElementById('popup-container').classList.add('no-sync');
+        }
+    });
+
+    // Verifica se o painel de administração do site está aberto
+    chrome.tabs.query
+    (
+        {
+            url: 'https://www.angraficaimpacto.com.br/admin/?*',
+        },
+        function(tabs)
+        {
+            if (tabs.length > 0) {
+                const linkStatusSpan = document.querySelector('.app-status__link .status-info');
+                linkStatusSpan.querySelector('.warning').classList.remove('active');
+                linkStatusSpan.querySelector('.success').classList.add('active');
+            }
+        }
+    );
+}
+
+function handleLock() {
+    document.getElementById('lock-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const rawFormData = new FormData(event.target);
+        const formPassword = encodeURIComponent(rawFormData.get('password'));
+        const storageData = await chrome.storage.sync.get('appData');
+
+        if (formPassword === storageData.appData.password)
+        {
+            document.getElementById('popup-container').classList.remove('locked');
+        }
+        else
+        {
+            alert('Senha incorreta');
+        }
+    });
+}
+
+function handleConfigSubmit() {
+    document.querySelector('#configuracoes form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const rawFormData = new FormData(event.target);
+        const formData = {};
+        let currentAppData = {
+            password: '',
+            plugchatToken: '',
+        }
+        let newAppData = {}
+        let errors = [];
+
+        if ( ! document.querySelector('.no-password') )
+        {
+            const storageData = await chrome.storage.sync.get('appData');
+            Object.assign(currentAppData, storageData.appData);
+        }
+
+        Object.assign(newAppData, currentAppData);
+
+        for (let [name, value] of rawFormData)
+        {
+            formData[name] = encodeURIComponent(value);
+        }
+
+        if (formData.newPassword == '') {
+            if ( currentAppData.password == '' )
+            {
+                errors.push('• Você precisa definir uma senha para utilizar a extensão.');
+            }
+        }
+        else
+        {
+            if ( formData.newPassword == formData.newPasswordConfirm )
+            {
+                if ( decodeURIComponent(formData.newPassword).length >= 8
+                    && decodeURIComponent(formData.newPassword).length <= 16 )
+                {
+                    newAppData.password = formData.newPassword;
+                }
+                else
+                {
+                    errors.push('• A senha precisa ter de 8 a 16 caracteres.');
+                }
+                
+            }
+            else
+            {
+                errors.push('• As senhas dos campos "Nova senha" e "Confirme a nova senha" não são iguais');
+            }
+        }
+
+        if ( formData.plugchatToken == '')
+        {
+            if ( currentAppData.plugchatToken == '' )
+            {
+                errors.push('• Você precisa fornecer uma chave de API do Plug Chat para utilizar a extensão.');
+            }
+        }
+        else
+        {
+            if ( formData.plugchatToken != currentAppData.plugchatToken )
+            {
+                newAppData.plugchatToken = formData.plugchatToken;
+            }
+        }
+
+        if ( currentAppData.password != ''
+            && formData.password != currentAppData.password )
+        {
+            errors.push('• Digite a senha atual para salvar as alterações.');
+        }
+
+        if ( errors.length == 0 )
+        {
+            if ( confirm('Deseja salvar as alterações?') == false )
+            {
+                return
+            }
+
+            saveToStorage({ appData: newAppData });
+
+            location.reload();
+        }
+        else
+        {
+            alert(errors.join("\n"));
+        }
+    });
+}
+
+function setTabsActions() {
+    document.querySelectorAll('nav button')
+        .forEach(
+            function(navLink)
+            {
+                navLink.addEventListener(
+                    'click',
+                    function(e)
+                    {
+                        e.preventDefault();
+                        document.querySelector('nav button.active').classList.remove('active');
+                        this.classList.add('active');
+                        moveActiveTabMarker()
+                        goToSection(this.dataset.target);
+                    }
+                );
+            }
+        );
+}
+
+function moveActiveTabMarker()
+{
+    const activeTab = document.querySelector('nav button.active');
+    const activeTabMarker = document.getElementById('active-tab-marker');
+    activeTabMarker.style.width = activeTab.offsetWidth + 'px';
+    activeTabMarker.style.left = activeTab.offsetLeft + 'px';
+}
+
+function goToSection(section = null)
+{
+    const targetSectionSelector = section ?? 'section.active';
+    const targetSection = document.querySelector(targetSectionSelector);
+    document.querySelector('main').style.transform = `translateX(-${targetSection.offsetLeft}px)`;
+}
+
+async function generateFields(fields, category, sectionId)
+{
+    const accordeon = document.querySelector(`${sectionId} .accordeon`);
+    const originalAccordeonItem = accordeon.querySelector(`.accordeon-item`);
+
+    for (let i = 0; i < fields.length; i++)
+    {
+        const accordeonItem = originalAccordeonItem.cloneNode(true);
+        const itemDataKey = category + '_' + fields[i];
+        const storageData = await chrome.storage.sync.get(itemDataKey);
+        const itemData = storageData[itemDataKey];
+        const itemSwitch = accordeonItem.querySelector('.switch-input');
+
+        accordeonItem.querySelector('.status-title').innerHTML = fields[i];
+        itemSwitch.setAttribute('name', fields[i]);
+        itemSwitch.addEventListener('change', (event) => handleSwitchClick(event, itemDataKey));
+
+        if ( itemData )
+        {
+            itemSwitch.checked = itemData.enabled;
+
+            accordeonItem.querySelector('.customer-message .message-type').value = itemData.customerMessage.type;
+            accordeonItem.querySelector('.customer-message .message-content').value = itemData.customerMessage.content;
+            accordeonItem.querySelector('.retailer-message .message-type').value = itemData.retailerMessage.type;
+            accordeonItem.querySelector('.retailer-message .message-content').value = itemData.retailerMessage.content;
+        }
+
+        accordeonItem.querySelector('.edit-button')
+            .addEventListener(
+                'click',
+                function ()
+                {
+                    document.querySelector('.accordeon-item.active')?.classList.remove('active');
+                    accordeonItem.classList.add('active');
+                    accordeonItem.addEventListener('transitionend', function()
+                    {
+                        document.querySelector(sectionId).scrollTo(0, accordeonItem.offsetTop);
+                    });
+                }
+            );
+
+        accordeonItem.querySelector('.cancel-button')
+            .addEventListener(
+                'click',
+                function ()
+                {
+                    this.closest('.accordeon-item').classList.remove('active');
+                }
+            );
+        
+        accordeonItem.querySelectorAll('button.format-item').forEach(formatButton => {
+            const buttonParent = formatButton.closest('.textarea');
+            const targetTextarea = buttonParent.querySelector('.message-content');
+            const wrapperChar = formatButton.dataset.wrapperChar;
+            formatButton.addEventListener('click', function()
+            {
+                wrapText(targetTextarea, wrapperChar);
+            });
+        });
+
+        accordeonItem.querySelectorAll('.button-placeholders').forEach(placeholderButton => {
+            placeholderButton.addEventListener('click', function()
+            {
+                placeholderButton.classList.toggle('active');
+            });
+        });
+
+        accordeonItem.querySelectorAll('li.placeholder-item').forEach(item => {
+            const itemParent = item.closest('.textarea');
+            const targetTextarea = itemParent.querySelector('.message-content');
+            const placeholder = item.innerText;
+            item.addEventListener('click', function()
+            {
+                addPlaceholder(targetTextarea, placeholder);
+            });
+        });
+        
+        accordeonItem.querySelector('button.success')
+            .addEventListener('click',() => handleSave(itemDataKey, accordeonItem));
+
+        accordeon.appendChild(accordeonItem);
+    }
+
+    accordeon.removeChild(originalAccordeonItem);
+}
+
+async function handleSwitchClick(event, key)
+{
+    let storageData = await chrome.storage.sync.get(key);
+
+    if ( ! storageData[key]) {
+        storageData[key] = {
+            customerMessage:
+            {
+                type: 'text',
+                content: '',
+            },
+            retailerMessage:
+            {
+                type: 'text',
+                content: '',
+            },
+        };
+    }
+
+    storageData[key].enabled = event.target.checked;
+    saveToStorage(storageData);
+}
+
+function handlePlaceholderButtons() {
+    document.addEventListener('click', function(event)
+    {
+        if (event.target.classList.contains('button-placeholders')
+            || event.target.classList.contains('gg-caret-down'))
+        {
+            return;
+        }
+
+        const activePlaceholderButtons = document.querySelectorAll('.button-placeholders.active');
+        if (activePlaceholderButtons.length > 0)
+        {
+            activePlaceholderButtons.forEach(button => {
+                button.classList.remove('active');
+            })
+        }
+    });
+}
+
+async function handleSave(key, item) {
+    let dataToSave = 
+    {
+    [key] : {
+                enabled: item.querySelector('.switch-input').checked,
+                customerMessage: {
+                    type: item.querySelector('.customer-message .message-type').value,
+                    content: item.querySelector('.customer-message .message-content').value,
+                },
+                retailerMessage: {
+                    type: item.querySelector('.retailer-message .message-type').value,
+                    content: item.querySelector('.retailer-message .message-content').value,
+                }
+            },
+    };
+
+    saveToStorage(dataToSave);
+    document.querySelector('.accordeon-item.active')?.classList.remove('active');
+}
+
+function wrapText(target, wrapperChar) {
+    const selectionStart = target.selectionStart;
+    const selectionEnd = target.selectionEnd;
+    let textOriginalValue = target.value;
+
+    target.value = textOriginalValue.slice(0, selectionStart)
+                   + wrapperChar
+                   + textOriginalValue.slice(selectionStart, selectionEnd)
+                   + wrapperChar
+                   + textOriginalValue.slice(selectionEnd);
+}
+
+function addPlaceholder(target, placeholder) {
+    const selectionStart = target.selectionStart;
+    const selectionEnd = target.selectionEnd;
+    let textOriginalValue = target.value;
+
+    target.value = textOriginalValue.slice(0, selectionStart)
+                   + placeholder
+                   + textOriginalValue.slice(selectionEnd);
+}
+
+function saveToStorage(data)
+{
+    const now = new Date();
+    data.lastChange = now.toISOString();
+    chrome.storage.sync.set(data);
+}
