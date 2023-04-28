@@ -1,45 +1,44 @@
-chrome.runtime.onMessage.addListener(
-    async function(request, sender, sendResponse)
+async function handleSendNotification(notificationData, sendResponse)
+{
+    let storageData = await chrome.storage.sync.get('appData');
+    const apiKey = storageData.appData.plugchatToken;
+    const apiURLs =
     {
-        if (request.contentScriptQuery == 'sendText')
-        {
-            let storageData = await chrome.storage.sync.get('appData');
-            const apiKey = storageData.appData.plugchatToken;
+        text: 'https://www.plugchat.com.br/api/whatsapp/send-text',
+        image: 'https://www.plugchat.com.br/api/whatsapp/send-image',
+        sticker: 'https://www.plugchat.com.br/api/whatsapp/send-text/send-sticker',
+    }
 
-            fetch("https://www.plugchat.com.br/api/whatsapp/send-text",
-            {
-                "method": "POST",
-                "headers":
-                {
-                    "authorization": apiKey,
-                    "Content-type": "application/json; charset=UTF-8"
-                },
-                "body":
-                JSON.stringify({
-                    phone: "5521988189988",
-                    message: "Teste",
-                })
-            })
-            .then(
-                response =>
-                {
-                    return response.text()
-                        .then(text =>
-                        {
-                            sendResponse([
-                            {
-                                body: text,
-                                status: response.status,
-                                statusText: response.statusText,
-                                request: JSON.stringify(request),
-                            }, null]);
-                        });
-                },
-                error =>
-                {
-                    sendResponse([null, error]);
-                }
-            );
+    fetch(apiURLs[notificationData.messageType],
+    {
+        "method": "POST",
+        "headers":
+        {
+            "authorization": apiKey,
+            "Content-type": "application/json; charset=UTF-8"
+        },
+        "body":
+        JSON.stringify({
+            phone: "5521988189988",
+            message: notificationData.messageContent,
+        })
+    })
+    .then(response => response.text())
+    .then(data => {
+        let dataObj = JSON.parse(data);
+        sendResponse(dataObj);
+    })
+    .catch(error => {
+            sendResponse(error);
+    });
+}
+
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse)
+    {
+        if (request.contentScriptQuery == 'sendNotification')
+        {
+            handleSendNotification(request.notificationData, sendResponse);
         }
 
         return true;

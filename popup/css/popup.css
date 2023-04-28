@@ -616,11 +616,12 @@ button.success i {
 }
 
 /*
-* NO SYNC STATE
+* BLOCKED STATE
 */
 
-#popup-container.locked nav,
-#popup-container.locked section:not(#home) {
+#popup-container.blocked nav,
+#popup-container.blocked #lock-form,
+#popup-container.blocked section:not(#home) {
     display: none !important;
 }
 

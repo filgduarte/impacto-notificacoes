@@ -1,31 +1,44 @@
 window.onload = async function()
 {
-    const storageData = await chrome.storage.sync.get(null);
-    if (Object.keys(storageData).length > 0 ) {
-        init();
-        return;
-    }
+    const storageData = await getStorageData();
+    const statusOK = await getStatus(storageData);
+
+    if (statusOK)
+        init(storageData);
+    else
+        handleConfigSubmit();    
 }
 
-async function init() {
-    const storageData = await chrome.storage.sync.get(['status', 'payments', 'appData']);
-
-    getStatus();
-    handleLock();
+function init(storageData) {
+    handleLock(storageData);
     handleConfigSubmit();
     setTabsActions();
-    moveActiveTabMarker();
     generateFields(storageData.status, 'status', '#status');
-    generateFields(storageData.payments, 'payment', '#pagamentos');
+    generateFields(storageData.billing, 'billing', '#financeiro');
     handlePlaceholderButtons();
-    document.getElementById('token-field').value = storageData.appData.plugchatToken;    
+    document.getElementById('token-field').value = storageData.appData.plugchatToken;
 }
 
-async function getStatus() {
-    const storageData = await chrome.storage.sync.get(['appData', 'lastChange']);
+async function getStorageData()
+{
+    const [adminTab] = await chrome.tabs.query({url: 'https://www.angraficaimpacto.com.br/admin/?*'});
 
+    if (adminTab)
+        await chrome.tabs.sendMessage(adminTab.id, {message: 'updateStorageData'});
+
+    result = await chrome.storage.sync.get(null);
+
+    return result;
+}
+
+async function getStatus(storageData) {
+    const userInfo = await chrome.identity.getProfileUserInfo();
+    const [adminTab] = await chrome.tabs.query({url: 'https://www.angraficaimpacto.com.br/admin/?*'});
     let hasApiToken = false;
     let hasPassword = false;
+    let hasSync = false;
+    let isSiteOpen = false;
+
     if ( storageData.hasOwnProperty('appData') )
     {
 
@@ -37,7 +50,7 @@ async function getStatus() {
             apikeyStatusSpan.querySelector('.success').classList.add('active');
         }
 
-        if ( storageData.appData.password != '' )
+        if ( storageData.appData.password && storageData.appData.password != '' )
         {
             hasPassword = true;
         }
@@ -58,73 +71,73 @@ async function getStatus() {
         document.getElementById('popup-container').classList.add('locked');
     }
 
-    if ( storageData.hasOwnProperty('lastChange') )
+    if ( storageData.lastChange && storageData.lastChange != '' )
     {
-        if ( storageData.lastChange != '' )
-        {
-            const lastChange = new Date(storageData.lastChange);
-            const lastChangeDate = lastChange.toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-            });
-            const lastChangeTime = lastChange.toLocaleTimeString('pt-BR', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-            });
+        const lastChange = new Date(storageData.lastChange);
+        const lastChangeDate = lastChange.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        });
+        const lastChangeTime = lastChange.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        });
 
-            const lastChangeStatusSpan = document.querySelector('.app-status__last-change .status-info');
-            const lastChangeDateSpan = lastChangeStatusSpan.querySelector('.date');
-            lastChangeStatusSpan.querySelector('.fail').classList.remove('active');
-            lastChangeDateSpan.innerText = lastChangeDate + ' às ' + lastChangeTime;
-            lastChangeDateSpan.classList.add('active');
-        }
+        const lastChangeStatusSpan = document.querySelector('.app-status__last-change .status-info');
+        const lastChangeDateSpan = lastChangeStatusSpan.querySelector('.date');
+        lastChangeStatusSpan.querySelector('.warning').classList.remove('active');
+        lastChangeDateSpan.innerText = lastChangeDate + ' às ' + lastChangeTime;
+        lastChangeDateSpan.classList.add('active');
     }
 
-    chrome.identity.getProfileUserInfo(function(data)
+    if (userInfo.id)
     {
-        if (data.id)
-        {
-            const syncStatusSpan = document.querySelector('.app-status__sync .status-info');
-            syncStatusSpan.querySelector('.fail').classList.remove('active');
-            syncStatusSpan.querySelector('.success').classList.add('active');
-        }
-        else
-        {
-            // Se o usuário não estiver logado no navegador
-            // trava a utilização do popup e exibe mensagem
-            document.getElementById('popup-container').classList.add('no-sync');
-        }
-    });
+        hasSync = true;
+        const syncStatusSpan = document.querySelector('.app-status__sync .status-info');
+        syncStatusSpan.querySelector('.fail').classList.remove('active');
+        syncStatusSpan.querySelector('.success').classList.add('active');
+    }
+    else
+    {
+        // Se o usuário não estiver logado no navegador
+        // trava a utilização do popup
+        document.getElementById('popup-container').classList.add('blocked');
+    }
 
-    // Verifica se o painel de administração do site está aberto
-    chrome.tabs.query
-    (
-        {
-            url: 'https://www.angraficaimpacto.com.br/admin/?*',
-        },
-        function(tabs)
-        {
-            if (tabs.length > 0) {
-                const linkStatusSpan = document.querySelector('.app-status__link .status-info');
-                linkStatusSpan.querySelector('.warning').classList.remove('active');
-                linkStatusSpan.querySelector('.success').classList.add('active');
-            }
-        }
-    );
+    // Verifica se o painel de administração do site está aberto na aba ativa
+    if (adminTab && adminTab.active)
+    {
+        isSiteOpen = true;
+        const linkStatusSpan = document.querySelector('.app-status__link .status-info');
+        linkStatusSpan.querySelector('.fail').classList.remove('active');
+        linkStatusSpan.querySelector('.success').classList.add('active');
+    }
+    else
+    {
+        // Se a aba ativa não for a do painel de administração
+        // trava a utilização do popup
+        document.getElementById('popup-container').classList.add('blocked');
+    }
+
+    if (hasApiToken && hasPassword && hasSync && isSiteOpen)
+        return true;
+    else
+        return false;
 }
 
-function handleLock() {
-    document.getElementById('lock-form').addEventListener('submit', async (event) => {
+function handleLock(storageData)
+{
+    document.getElementById('lock-form').addEventListener('submit', (event) => {
         event.preventDefault();
         const rawFormData = new FormData(event.target);
         const formPassword = encodeURIComponent(rawFormData.get('password'));
-        const storageData = await chrome.storage.sync.get('appData');
 
         if (formPassword === storageData.appData.password)
         {
             document.getElementById('popup-container').classList.remove('locked');
+            moveActiveTabMarker();
         }
         else
         {
@@ -133,8 +146,8 @@ function handleLock() {
     });
 }
 
-function handleConfigSubmit() {
-    document.querySelector('#configuracoes form').addEventListener('submit', async (event) => {
+function handleConfigSubmit(storageData) {
+    document.querySelector('#configuracoes form').addEventListener('submit', (event) => {
         event.preventDefault();
         const rawFormData = new FormData(event.target);
         const formData = {};
@@ -147,7 +160,6 @@ function handleConfigSubmit() {
 
         if ( ! document.querySelector('.no-password') )
         {
-            const storageData = await chrome.storage.sync.get('appData');
             Object.assign(currentAppData, storageData.appData);
         }
 
@@ -387,7 +399,7 @@ function handlePlaceholderButtons() {
     });
 }
 
-async function handleSave(key, item) {
+function handleSave(key, item) {
     let dataToSave = 
     {
     [key] : {
@@ -433,5 +445,6 @@ function saveToStorage(data)
 {
     const now = new Date();
     data.lastChange = now.toISOString();
+
     chrome.storage.sync.set(data);
 }

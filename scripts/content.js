@@ -20,91 +20,128 @@ async function init()
         throw errorMessage;
     }
 
-    // const statusSelects = document.querySelectorAll('select.pedido-item-status-alterar');
+    const statusSelects = document.querySelectorAll('select.pedido-item-status-alterar');
 
-    // if (statusSelects)
-    // {
-    //     statusSelects.forEach((statusSelect) =>
-    //     {
-    //         statusSelect.addEventListener('change', handleStatusChange);
-    //     });
-    // }
+    if (statusSelects)
+    {
+        statusSelects.forEach((statusSelect) =>
+        {
+            statusSelect.addEventListener('change', handleStatusChange);
+        });
+    }
 }
 
 async function getAppData()
 {
     let storageData = await chrome.storage.sync.get(null);
-    if (Object.keys(storageData).length > 0)
+    let siteData = await getDataFromSite();
+
+    if (Object.keys(siteData).length == 0)
     {
-        console.log(storageData);
+        console.log('GRÁFICA IMPRIMA NOTIFICAÇÕES: Erro ao recuperar dados do site.');
+
         return storageData;
     }
     
-    let siteData = await getDataFromSite();
-    if (Object.keys(siteData).length > 0)
+    if (Object.keys(storageData).length == 0)
     {
         chrome.storage.sync.set( siteData );
         storageData = await chrome.storage.sync.get(null);
-        if (Object.keys(storageData).length > 0)
-        {
-            return storageData;
-        }   
+
+        return storageData;
     }
 
-    return false;
+    let upToDateData = {
+        appData: storageData.appData,
+        status: siteData.status,
+        billing: storageData.billing ?? siteData.billing,
+    };
+    
+    for (key in storageData)
+    {
+        if (   key == 'appData'
+            || key == 'status'
+            || key == 'billing'
+            || key == 'lastSentMessages'
+            || key == 'lastChange'
+           )
+            continue;
+        
+        if (key.slice(0,5) == 'status')
+        {
+            let statusName = key.slice(7); // status_ -> 7 characters
+                    
+            if (siteData.status.includes(statusName))
+            {
+                upToDateData[key] = storageData[key];
+            }
+            else
+            {
+                chrome.storage.sync.remove(key);
+            }
+        }
+        else
+        {
+            let billingName = key.slice(8);  // billing_ -> 8 characters
+            
+            if ( ! storageData.billing)
+                continue;
+
+            if (storageData.billing.includes(billingName))
+            {
+                upToDateData[key] = storageData[key];
+            }
+            else
+            {
+                chrome.storage.sync.remove(key);
+            }
+        }
+    }
+
+    if (storageData.hasOwnProperty('lastSentMessages'))
+    {
+        const now = new Date();        
+        let lastSentMessages = storageData['lastSentMessages'];
+
+        for (key in lastSentMessages)
+        {
+            let lastSent = new Date(lastSentMessages[key]);
+
+            if (getTimeDiff(now, lastSent) >= 15)
+                delete lastSentMessages[key];
+        }
+    }
+
+    chrome.storage.sync.set( upToDateData );
+    newStorageData = await chrome.storage.sync.get(null);
+    console.log(newStorageData);
+    return newStorageData;
 }
 
-async function getDataFromSite() {
+async function getDataFromSite()
+{
     let statusSelectElement = null;
     let statusOptionElements = null;
-    let paymentSelectElement = null;
-    let paymentOptionElements = null;
     let urlToFetch = '';
     /*
         ESTRUTURA DO STORAGE (KEY: VALUE)
-        appData: {
-            password: 'string',
-            plugchatToken: 'string',
-        }
-        status: [
-            'nome do status 1',
-            'nome do status 2',
-            ...
-        ],
-        payments: [
-            'nome da forma de pagamento 1',
-            'nome da forma de pagamento 2',
-            ...
-        ],
+        appData: { password: 'string', plugchatToken: 'string' },
+        status: [ 'nome do status 1', 'nome do status 2', ... ],
+        billing : [ 'Inserir pagamento', 'Inserir desconto' ],
         status_nomeDoStatus1: {
             enabled: boolean,
-            customerMessage: {
-                type: 'string',
-                content: 'string',
-            },
-            retailerMessage: {
-                type: 'string',
-                content: 'string',
-            },
+            customerMessage: { type: 'string', content: 'string' },
+            retailerMessage: { type: 'string', content: 'string' },
         },
         ...,
-        payment_nomeDaFormaDePagamento1: {
+        billing_nomeDoItem1: {
             enabled: boolean,
-            customerMessage: 'string',
-            retailerMessage: 'string'
-        },
-        lastSentMessages: {
-            '5521999999999' : '2021-01-01T12:00:00'
+            customerMessage: { type: 'string', content: 'string' },
+            retailerMessage: { type: 'string', content: 'string' },
         },
         ...,
-        lastChange: '2021-01-01T12:00:00.458Z'
-
-        PARA NÃO ENVIAR MENSAGENS EM SEQUÊNCIA PARA UM MESMO NÚMERO:
-        Criar setInterval no background.js para apagar de x em x minutos
-        os registros de lastSentMessages que possuam data mais antiga
-        que x minutos.
-        Ao receber um request pra enviar mensagem, não enviar se o
-        número de telefone estiver em lastSentMessages.
+        lastSentMessages: { '5521999999999' : '2021-01-01T12:00:00', ... },
+        lastChange: '2021-01-01T12:00:00.458Z',
     */
     let result = {
         appData: {
@@ -112,52 +149,30 @@ async function getDataFromSite() {
             plugchatToken: '',
         },
         status : [],
-        payments: [],
+        billing : ['Inserir pagamento', 'Inserir desconto'],
     };
 
-    switch (currentPage)
+    if (currentPage == 'pedidos/home' || currentPage == 'pedidos/detalhes')
     {
-        case 'pedidos/home':
-        case 'pedidos/detalhes':
-            statusOptionElements = document.querySelector('select[name="status"]').options;
-
-            urlToFetch = baseURL + '?imprimastore=pedidos/pagamentos';
-            paymentSelectElement = await fetchFromPage(urlToFetch, 'select[name="forma"]')
-            paymentOptionElements = paymentSelectElement.options;
-        break;
-
-        case 'pedidos/pagamentos':
-            paymentOptionElements = document.querySelector('select[name="forma"]').options;
-
-            urlToFetch = baseURL + '?imprimastore=pedidos/home';
-            statusSelectElement = await fetchFromPage(urlToFetch, 'select[name="status"]');
-            statusOptionElements = statusSelectElement.options;
-        break;
-
-        default:
-            urlToFetch = baseURL + '?imprimastore=pedidos/home';
-            statusSelectElement = await fetchFromPage(urlToFetch, 'select[name="status"]');
-            statusOptionElements = statusSelectElement.options;
-
-            urlToFetch = baseURL + '?imprimastore=pedidos/pagamentos';
-            paymentSelectElement = await fetchFromPage(urlToFetch, 'select[name="forma"]')
-            paymentOptionElements = paymentSelectElement.options;
-        break;
+        statusOptionElements = document.querySelector('select[name="status"]').options;
+    }
+    else
+    {
+        urlToFetch = baseURL + '?imprimastore=pedidos/home';
+        statusSelectElement = await fetchFromPage(urlToFetch, 'select[name="status"]');
+        statusOptionElements = statusSelectElement.options;
     }
 
-    // LOOPS COMEÇAM EM 1 PORQUE A OPÇÃO 0 É "TODOS"
+    // LOOP COMEÇA EM 1 PORQUE A OPÇÃO 0 É "TODOS"
     for (let i = 1; i < statusOptionElements.length; i++) {
         result.status.push(statusOptionElements[i].text);
-    }
-
-    for (let i = 1; i < paymentOptionElements.length; i++) {
-        result.payments.push(paymentOptionElements[i].text);
     }
 
     return result;
 }
 
-async function fetchFromPage(url, selector) {
+async function fetchFromPage(url, selector)
+{
     if (! url || ! selector) return;
 
     const response = await fetch(url);
@@ -171,53 +186,134 @@ async function fetchFromPage(url, selector) {
 async function handleStatusChange()
 {
     const newStatus = this.options[this.selectedIndex].text;
-    let customerPhoneNumber = await getCustomerPhoneNumber(this);
-    const messageToSend = "Olá!\nO status do seu pedido foi atualizado para " + newStatus + ".\nSeu telefone é " + customerPhoneNumber;
+    const newStatusKey = 'status_' + newStatus;
+    const storageData = await chrome.storage.sync.get([newStatusKey, 'lastSentMessages']);
+    const statusData = storageData[newStatusKey];
+    let lastSentMessages = storageData.lastSentMessages;
+
+    if ( ! (statusData && statusData.enabled) )
+        return;
+
+    let messageType = 'text';
+    let messageContent = '';
+    let orderData = await getOrderData(this);
+
+    if (lastSentMessages && lastSentMessages.hasOwnProperty(orderData.customerPhone))
+    {
+        const now = new Date();
+        const lastSent = new Date(lastSentMessages[orderData.customerPhone]);
+        if (getTimeDiff(now, lastSent) < 15)
+        {
+            console.log('Notificação não enviada: Uma notificação já foi enviada a esse cliente nos últimos 15 minutos');
+            return;
+        }
+    }
+
+    const replacePlaceholders =
+    {
+        '{nome}' : orderData.customerName,
+        '{npedido}' : orderData.orderNumber,
+        '{titulo}' : orderData.orderTitle,
+        '{cores}' : orderData.orderColors,
+        '{material}' : orderData.orderMaterial,
+        '{formato}' : orderData.orderSize,
+        '{acabamento}' : orderData.orderFinishing,
+        '{revestimento}' : orderData.orderCover,
+        '{extras}' : orderData.orderExtras,
+        '{qtde}' : orderData.orderQuantity,
+    }
+    if (orderData.customerType == 'Padrão')
+    {
+        messageType = statusData.customerMessage.type;
+        messageContent = replaceString(statusData.customerMessage.content, replacePlaceholders);
+    }
+    else
+    {
+        messageType = statusData.retailerMessage.type;
+        messageContent = replaceString(statusData.retailerMessage.content, replacePlaceholders);
+    }
+
+    if (messageContent == '')
+        return;
+
     chrome.runtime.sendMessage(
     {
-        contentScriptQuery: 'sendText',
-        body:
+        contentScriptQuery: 'sendNotification',
+        notificationData:
         {
-            phone: "5521988189988",
-            message: messageToSend,
+            phone: orderData.customerPhone,
+            messageType: messageType,
+            messageContent: messageContent,
         }
     },
     (response) =>
     {
-        console.log(response);
+        if (response.zaapId && response.zaapId != '')
+        {
+            const now = new Date();
+            let lastSentMessages = {};
+
+            if (storageData.hasOwnProperty('lastSentMessages'))
+                lastSentMessages = storageData.lastSentMessages;
+
+            lastSentMessages = {
+                ...lastSentMessages,
+                [orderData.customerPhone] : now.toISOString(),
+            }
+            
+            chrome.storage.sync.set( {lastSentMessages: lastSentMessages} );
+        }
     });
 }
 
-async function getCustomerPhoneNumber(el)
+function sendNotification(data)
 {
-    let customerPhoneNumber = '';
 
-    if ( location.href.includes('pedidos/detalhes') )
+}
+
+async function getOrderData(el)
+{
+    let doc = document;
+    const regex = /[^0-9]/g;
+
+    if ( ! location.href.includes('pedidos/detalhes') )
     {
-        // SE O USUÁRIO ALTEROU O CAMPO STATUS NA PÁGINA DOS DETALHES DO
-        // PEDIDO, PEGA O TELEFONE NO LINK QUE ESTÁ NOS DADOS DO CLIENTE
-        const customerPhoneLink = document.querySelector('[href*="phone="]')
-                                          .href;
-        customerPhoneNumber = customerPhoneLink.substr(-13);
-    }
-    else
-    {
-        // SENÃO, FAZ UM FETCH NA PÁGINA COM OS DADOS DO CLIENTE E PEGA
-        // O TELEFONE DO CAMPO TELEFONE NO FORMULÁRIO
-        const selectedCustomerPage = el.closest('tr')
-                                       .querySelector('[href*="imprimastore=clientes"]')
-                                       .href;
-        let response = await fetch(selectedCustomerPage);
-        let customerPageData = await response.text();
+        // SE O USUÁRIO NÃO ALTEROU O CAMPO STATUS NA PÁGINA
+        // DE DETALHES DO PEDIDO, FAZ UM FETCH USANDO O LINK
+        const selectedOrderPage = el.closest('tr')
+                                    .querySelector('.btn-pequeno')
+                                    .href;
+        let response = await fetch(selectedOrderPage);
+        let orderPageData = await response.text();
         const parser = new DOMParser();
-        const doc = parser.parseFromString(customerPageData, 'text/html');
-        const regex = /[^0-9]/g;
-        customerPhoneNumber = '55' + doc.querySelector('.inputFone')
-                                        .value
-                                        .replace(regex, '');
+        doc = parser.parseFromString(orderPageData, 'text/html');
+    }
+    
+    const customerPhoneElement = doc.querySelector('.conteudo-area-branca > .linha:nth-child(2) .bloco-paragrafo-linha p:nth-child(4) span');
+
+    let orderTitle = doc.querySelector('.conteudo-fluido > .linha:nth-child(3) .texto-bold').innerText;
+    if (orderTitle == '')
+    {
+        orderTitle = doc.querySelector('.conteudo-fluido > .linha:nth-child(3) .pb-10').innerText;
     }
 
-    return customerPhoneNumber;
+    const orderData =
+    {
+        orderNumber: doc.querySelector('.pagina-titulo span').innerText,
+        orderTitle: orderTitle,
+        orderColors: '',
+        orderMaterial: '',
+        orderSize: '',
+        orderFinishing: '',
+        orderCover: '',
+        orderExtras: '',
+        orderQuantity: doc.querySelector('.conteudo-fluido > .linha:nth-child(3) td:nth-child(3) .texto-semibold').innerText,
+        customerName: doc.querySelector('.texto-grande a').innerText,
+        customerType: doc.querySelector('.texto-grande ~ p:last-child span').innerText,
+        customerPhone: '55' + customerPhoneElement.innerText.replace(regex, ''),
+    };
+
+    return orderData;
 }
 
 function handleResponse(message)
@@ -269,3 +365,28 @@ function showAlert(message, type) {
 
     container.appendChild(alertElement);
 }
+
+function replaceString(str, replaceMap)
+{
+    Object.keys(replaceMap).forEach( (key) => {
+        str = str.replaceAll(key, replaceMap[key]);
+    });
+
+    return str;
+}
+
+function getTimeDiff(time1, time2)
+{
+    const timeDiff = Math.round( (time1.getTime() - time2.getTime()) / 60000 );
+    return timeDiff;
+}
+
+chrome.runtime.onMessage.addListener(
+    function(request)
+    {
+        if (request.message == 'updateStorageData')
+        {
+            getAppData();
+        }
+    }
+)

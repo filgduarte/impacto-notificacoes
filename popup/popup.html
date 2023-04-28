@@ -20,8 +20,8 @@
                 <button data-target="#status" title="Alterar mensagens de troca de status">
                     Status
                 </button>
-                <button data-target="#pagamentos" title="Alterar mensagens de pagamento">
-                    Pagamentos
+                <button data-target="#financeiro" title="Alterar mensagens de pagamento e desconto">
+                    Financeiro
                 </button>
                 <button data-target="#configuracoes" title="Configurações">
                     Configurações
@@ -57,7 +57,7 @@
                         </span>
                         <span class="status-info">
                             <span class="success" title="Chave da API do Plug Chat salva.">OK</span>
-                            <span class="fail active" title="A chave da API do Plug Chat não foi informada.">Falha</span>
+                            <span class="fail critical active" title="A chave da API do Plug Chat não foi informada.">Falha</span>
                         </span>
                     </li>
                     <li class="app-status__sync">
@@ -80,8 +80,8 @@
                             Conexão com o site
                         </span>
                         <span class="status-info">
-                            <span class="success" title="O painel de administração do site está aberto no navegador.">OK</span>
-                            <span class="warning active" title="O painel de administração do site não está aberto no navegador. Você ainda pode alterar as mensagens, mas não é possível verificar se os status e formas de pagamento estão atualizados.">Falha</span>
+                            <span class="success" title="O painel de administração do site está aberto na aba ativa.">OK</span>
+                            <span class="fail critical active" title="O painel de administração do site não está aberto na aba ativa.">Falha</span>
                         </span>
                     </li>
                     <li class="app-status__last-change">
@@ -93,7 +93,7 @@
                         </span>
                         <span class="status-info">
                             <span class="success date" title="Data da última modificação das mensagens."></span>
-                            <span class="fail active" title="Nenhuma modificação registrada.">Nunca</span>
+                            <span class="warning active" title="Nenhuma modificação registrada.">Nunca</span>
                         </span>
                     </li>
                 </ul>
@@ -128,11 +128,14 @@
                                 <fieldset class="customer-message">
                                     <label class="message-type-label">
                                         <span>Mensagem para o <strong>cliente</strong>:</span>
+                                        <!--
                                         <select class="message-type">
                                             <option value="text" selected>Texto</option>
                                             <option value="image">Imagem</option>
                                             <option value="sticker">Sticker</option>
                                         </select>
+                                        -->
+                                        <input type="hidden" class="message-type" value="text">
                                     </label>
                                     <fieldset class="textarea">
                                         <div class="textarea-toolbar">
@@ -170,11 +173,14 @@
                                 <fieldset class="retailer-message">
                                     <label class="message-type-label">
                                         <span>Mensagem para o <strong>revendedor</strong>:</span>
+                                        <!--
                                         <select class="message-type">
                                             <option value="text" selected>Texto</option>
                                             <option value="image">Imagem</option>
                                             <option value="sticker">Sticker</option>
                                         </select>
+                                        -->
+                                        <input type="hidden" class="message-type" value="text">
                                     </label>
                                     <fieldset class="textarea">
                                         <div class="textarea-toolbar">
@@ -218,8 +224,8 @@
                 </div>
             </section>
     
-<!-- SEÇÃO PAGAMENTOS -->
-            <section id="pagamentos">
+<!-- SEÇÃO FINANCEIRO -->
+            <section id="financeiro">
                 <div class="accordeon">
                     <div class="accordeon-item">
                         <div class="accordeon-item__header">
@@ -233,10 +239,10 @@
                             </label>
                             <h2 class="status-title"></h2>
                             <button class="edit-button" title="Editar">
-                                <i class="fa-solid fa-pencil"></i>
+                                <i class="gg-pencil-fill"></i>
                             </button>
                             <button class="cancel-button" title="Cancelar edição">
-                                <i class="fa-solid fa-times"></i>
+                                <i class="gg-close"></i>
                             </button>
                         </div>
                         <div class="accordeon-item__content">
@@ -244,28 +250,31 @@
                                 <fieldset class="customer-message">
                                     <label class="message-type-label">
                                         <span>Mensagem para o <strong>cliente</strong>:</span>
+                                        <!--
                                         <select class="message-type">
                                             <option value="text" selected>Texto</option>
                                             <option value="image">Imagem</option>
                                             <option value="sticker">Sticker</option>
                                         </select>
+                                        -->
+                                        <input type="hidden" class="message-type" value="text">
                                     </label>
                                     <fieldset class="textarea">
                                         <div class="textarea-toolbar">
-                                            <button title="Negrito" class="button-bold" data-wrapper-char="*">
-                                                <i class="fa-solid fa-bold"></i>
+                                            <button title="Negrito" class="format-item button-bold" data-wrapper-char="*">
+                                                N
                                             </button>
-                                            <button title="Itálico" class="button-italic" title="" data-wrapper-char="_">
-                                                <i class="fa-solid fa-italic"></i>
+                                            <button title="Itálico" class="format-item button-italic" title="" data-wrapper-char="_">
+                                                I
                                             </button>
-                                            <button title="Tachado" class="button-strikethrough" data-wrapper-char="~">
-                                                <i class="fa-solid fa-strikethrough"></i>
+                                            <button title="Tachado" class="format-item button-strikethrough" data-wrapper-char="~">
+                                                T
                                             </button>
-                                            <button title="Monoespaçado" class="button-monospace" data-wrapper-char="```">
-                                                <i class="fa-solid fa-font"></i>
+                                            <button title="Monoespaçado" class="format-item button-monospace" data-wrapper-char="```">
+                                                M
                                             </button>
                                             <button title="Placeholders" class="button-placeholders">
-                                                {...} <i class="fa-solid fa-caret-down fa-xs"></i>
+                                                {...} <i class="gg-caret-down"></i>
                                             </button>
                                             <ul class="placeholders">
                                                 <li class="placeholder-item" title="Nome do cliente">{nome}</li>
@@ -280,34 +289,37 @@
                                                 <li class="placeholder-item" title="Quantidade">{qtde}</li>
                                             </ul>
                                         </div>
-                                        <textarea class="message-content message-text-content"></textarea>
+                                        <textarea class="message-content"></textarea>
                                     </fieldset>
                                 </fieldset>
                                 <fieldset class="retailer-message">
                                     <label class="message-type-label">
                                         <span>Mensagem para o <strong>revendedor</strong>:</span>
+                                        <!--
                                         <select class="message-type">
                                             <option value="text" selected>Texto</option>
                                             <option value="image">Imagem</option>
                                             <option value="sticker">Sticker</option>
                                         </select>
+                                        -->
+                                        <input type="hidden" class="message-type" value="text">
                                     </label>
                                     <fieldset class="textarea">
                                         <div class="textarea-toolbar">
-                                            <button title="Negrito" class="button-bold" data-wrapper-char="*">
-                                                <i class="fa-solid fa-bold"></i>
+                                            <button title="Negrito" class="format-item button-bold" data-wrapper-char="*">
+                                                N
                                             </button>
-                                            <button title="Itálico" class="button-italic" title="" data-wrapper-char="_">
-                                                <i class="fa-solid fa-italic"></i>
+                                            <button title="Itálico" class="format-item button-italic" title="" data-wrapper-char="_">
+                                                I
                                             </button>
-                                            <button title="Tachado" class="button-strikethrough" data-wrapper-char="~">
-                                                <i class="fa-solid fa-strikethrough"></i>
+                                            <button title="Tachado" class="format-item button-strikethrough" data-wrapper-char="~">
+                                                T
                                             </button>
-                                            <button title="Monoespaçado" class="button-monospace" data-wrapper-char="```">
-                                                <i class="fa-solid fa-font"></i>
+                                            <button title="Monoespaçado" class="format-item button-monospace" data-wrapper-char="```">
+                                                M
                                             </button>
                                             <button title="Placeholders" class="button-placeholders">
-                                                {...} <i class="fa-solid fa-caret-down fa-xs"></i>
+                                                {...} <i class="gg-caret-down"></i>
                                             </button>
                                             <ul class="placeholders">
                                                 <li class="placeholder-item" title="Nome do cliente">{nome}</li>
@@ -326,7 +338,7 @@
                                     </fieldset>
                                 </fieldset>
                                 <button title="Salvar" class="success">
-                                    <i class="fa-solid fa-floppy-disk"></i>SALVAR
+                                    <i class="gg-floppy-disk"></i>SALVAR
                                 </button>
                             </div>
                         </div>
