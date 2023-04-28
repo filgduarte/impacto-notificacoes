@@ -21,6 +21,10 @@ async function init()
     }
 
     const statusSelects = document.querySelectorAll('select.pedido-item-status-alterar');
+    const paymentContainer = document.querySelector('.fa.fa-donate').closest('.linha.mb-40');
+    const addPaymentBtn = paymentContainer.querySelector('.btn');
+    const discountContainer = document.querySelector('.fa.fa-tags').closest('.linha.mb-40');
+    const addDiscountBtn = discountContainer.querySelector('.btn');
 
     if (statusSelects)
     {
@@ -29,6 +33,16 @@ async function init()
             statusSelect.addEventListener('change', handleStatusChange);
         });
     }
+
+    if (addPaymentBtn)
+        addPaymentBtn.addEventListener('click', function () {
+            sendNotification("billing_Inserir pagamento", this)
+        });
+
+    if (addDiscountBtn)
+        addDiscountBtn.addEventListener('click', function () {
+            sendNotification("billing_Inserir desconto", this)
+        });
 }
 
 async function getAppData()
@@ -67,7 +81,7 @@ async function getAppData()
            )
             continue;
         
-        if (key.slice(0,5) == 'status')
+        if (key.slice(0,6) == 'status')
         {
             let statusName = key.slice(7); // status_ -> 7 characters
                     
@@ -106,9 +120,13 @@ async function getAppData()
         for (key in lastSentMessages)
         {
             let lastSent = new Date(lastSentMessages[key]);
-
             if (getTimeDiff(now, lastSent) >= 15)
                 delete lastSentMessages[key];
+        }
+
+        upToDateData = {
+            ...upToDateData,
+            lastSentMessages: lastSentMessages,
         }
     }
 
@@ -120,29 +138,30 @@ async function getAppData()
 
 async function getDataFromSite()
 {
+/*
+    ESTRUTURA DO STORAGE (KEY: VALUE)
+    appData: { password: 'string', plugchatToken: 'string' },
+    status: [ 'nome do status 1', 'nome do status 2', ... ],
+    billing : [ 'Inserir pagamento', 'Inserir desconto' ],
+    status_nomeDoStatus1: {
+        enabled: boolean,
+        customerMessage: { type: 'string', content: 'string' },
+        retailerMessage: { type: 'string', content: 'string' },
+    },
+    ...,
+    billing_nomeDoItem1: {
+        enabled: boolean,
+        customerMessage: { type: 'string', content: 'string' },
+        retailerMessage: { type: 'string', content: 'string' },
+    },
+    ...,
+    lastSentMessages: { '5521999999999' : '2021-01-01T12:00:00', ... },
+    lastChange: '2021-01-01T12:00:00.458Z',
+*/
+
     let statusSelectElement = null;
     let statusOptionElements = null;
     let urlToFetch = '';
-    /*
-        ESTRUTURA DO STORAGE (KEY: VALUE)
-        appData: { password: 'string', plugchatToken: 'string' },
-        status: [ 'nome do status 1', 'nome do status 2', ... ],
-        billing : [ 'Inserir pagamento', 'Inserir desconto' ],
-        status_nomeDoStatus1: {
-            enabled: boolean,
-            customerMessage: { type: 'string', content: 'string' },
-            retailerMessage: { type: 'string', content: 'string' },
-        },
-        ...,
-        billing_nomeDoItem1: {
-            enabled: boolean,
-            customerMessage: { type: 'string', content: 'string' },
-            retailerMessage: { type: 'string', content: 'string' },
-        },
-        ...,
-        lastSentMessages: { '5521999999999' : '2021-01-01T12:00:00', ... },
-        lastChange: '2021-01-01T12:00:00.458Z',
-    */
     let result = {
         appData: {
             password: '',
@@ -152,19 +171,18 @@ async function getDataFromSite()
         billing : ['Inserir pagamento', 'Inserir desconto'],
     };
 
-    if (currentPage == 'pedidos/home' || currentPage == 'pedidos/detalhes')
+    if (currentPage == 'pedidos/detalhes')
     {
         statusOptionElements = document.querySelector('select[name="status"]').options;
     }
     else
     {
-        urlToFetch = baseURL + '?imprimastore=pedidos/home';
+        urlToFetch = baseURL + '?imprimastore=pedidos/detalhes';
         statusSelectElement = await fetchFromPage(urlToFetch, 'select[name="status"]');
         statusOptionElements = statusSelectElement.options;
     }
 
-    // LOOP COMEÇA EM 1 PORQUE A OPÇÃO 0 É "TODOS"
-    for (let i = 1; i < statusOptionElements.length; i++) {
+    for (let i = 0; i < statusOptionElements.length; i++) {
         result.status.push(statusOptionElements[i].text);
     }
 
@@ -183,20 +201,31 @@ async function fetchFromPage(url, selector)
     return( doc.querySelector(selector) );
 }
 
-async function handleStatusChange()
+function handleStatusChange()
 {
     const newStatus = this.options[this.selectedIndex].text;
     const newStatusKey = 'status_' + newStatus;
-    const storageData = await chrome.storage.sync.get([newStatusKey, 'lastSentMessages']);
-    const statusData = storageData[newStatusKey];
+    sendNotification(newStatusKey, this);
+}
+
+function handleAddPayment()
+{
+    const newStatusKey = 'status_' + newStatus;
+    sendNotification(newStatusKey, this);
+}
+
+async function sendNotification(notificationKey, trigger)
+{
+    const storageData = await chrome.storage.sync.get([notificationKey, 'lastSentMessages']);
+    const notificationData = storageData[notificationKey];
     let lastSentMessages = storageData.lastSentMessages;
 
-    if ( ! (statusData && statusData.enabled) )
+    if ( ! (notificationData && notificationData.enabled) )
         return;
 
     let messageType = 'text';
     let messageContent = '';
-    let orderData = await getOrderData(this);
+    let orderData = await getOrderData(trigger);
 
     if (lastSentMessages && lastSentMessages.hasOwnProperty(orderData.customerPhone))
     {
@@ -221,16 +250,19 @@ async function handleStatusChange()
         '{revestimento}' : orderData.orderCover,
         '{extras}' : orderData.orderExtras,
         '{qtde}' : orderData.orderQuantity,
+        '{vpagamento}' : orderData.paymentValue,
+        '{fpagamento}' : orderData.paymentMethod,
+        '{desconto}' : orderData.discount,
     }
     if (orderData.customerType == 'Padrão')
     {
-        messageType = statusData.customerMessage.type;
-        messageContent = replaceString(statusData.customerMessage.content, replacePlaceholders);
+        messageType = notificationData.customerMessage.type;
+        messageContent = replaceString(notificationData.customerMessage.content, replacePlaceholders);
     }
     else
     {
-        messageType = statusData.retailerMessage.type;
-        messageContent = replaceString(statusData.retailerMessage.content, replacePlaceholders);
+        messageType = notificationData.retailerMessage.type;
+        messageContent = replaceString(notificationData.retailerMessage.content, replacePlaceholders);
     }
 
     if (messageContent == '')
@@ -266,17 +298,14 @@ async function handleStatusChange()
     });
 }
 
-function sendNotification(data)
-{
-
-}
-
 async function getOrderData(el)
 {
     let doc = document;
     const regex = /[^0-9]/g;
 
-    if ( ! location.href.includes('pedidos/detalhes') )
+    if ( location.href.includes('pedidos/detalhes') == false
+         && el.nodeName == 'SELECT'
+       )
     {
         // SE O USUÁRIO NÃO ALTEROU O CAMPO STATUS NA PÁGINA
         // DE DETALHES DO PEDIDO, FAZ UM FETCH USANDO O LINK
@@ -297,20 +326,26 @@ async function getOrderData(el)
         orderTitle = doc.querySelector('.conteudo-fluido > .linha:nth-child(3) .pb-10').innerText;
     }
 
+    const paymentContainer = document.querySelector('.fa.fa-donate').closest('.linha.mb-40');
+    const discountContainer = document.querySelector('.fa.fa-tags').closest('.linha.mb-40');
+
     const orderData =
     {
         orderNumber: doc.querySelector('.pagina-titulo span').innerText,
         orderTitle: orderTitle,
-        orderColors: '',
-        orderMaterial: '',
-        orderSize: '',
-        orderFinishing: '',
-        orderCover: '',
-        orderExtras: '',
+        // orderColors: '',
+        // orderMaterial: '',
+        // orderSize: '',
+        // orderFinishing: '',
+        // orderCover: '',
+        // orderExtras: '',
         orderQuantity: doc.querySelector('.conteudo-fluido > .linha:nth-child(3) td:nth-child(3) .texto-semibold').innerText,
         customerName: doc.querySelector('.texto-grande a').innerText,
         customerType: doc.querySelector('.texto-grande ~ p:last-child span').innerText,
         customerPhone: '55' + customerPhoneElement.innerText.replace(regex, ''),
+        paymentValue: paymentContainer.querySelector('input[name="valor"]').value,
+        paymentMethod: paymentContainer.querySelector('select[name="forma"]').value,
+        discount: discountContainer.querySelector('input[name="valor"]').value,
     };
 
     return orderData;
