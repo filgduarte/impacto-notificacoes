@@ -147,6 +147,18 @@ function handleLock(storageData)
 }
 
 function handleConfigSubmit(storageData) {
+    document.querySelector('.export-import .export').addEventListener('click', e => {
+        e.preventDefault();
+        downloadFile(
+            JSON.stringify(storageData),
+            'impacto-notificacoes.json',
+            'text-json'
+        );
+    });
+    document.querySelector('.export-import .import').addEventListener('change', e => {
+        importFile(e, e.target.files)
+    });
+
     document.querySelector('#configuracoes form').addEventListener('submit', (event) => {
         event.preventDefault();
         const rawFormData = new FormData(event.target);
@@ -447,4 +459,40 @@ function saveToStorage(data)
     data.lastChange = now.toISOString();
 
     chrome.storage.sync.set(data);
+}
+
+function downloadFile(data, fileName, fileType) {
+    const blob = new Blob([data], { type: fileType});
+    const a = document.createElement('a');
+    a.href = window.URL.createObjectURL(blob);
+    a.download = fileName;
+
+    const clickEvent = new MouseEvent('click', {
+        view: window,
+        bubbles: true,
+        cancelable: true,
+    });
+    a.dispatchEvent(clickEvent);
+    a.remove();
+}
+
+function importFile(event, file) {
+    if (!file) {
+        alert('Nenhum arquivo selecionado.');
+        return
+    }
+
+    const reader = new FileReader();
+    reader.readAsText(file[0]);
+
+    reader.onload = function() {
+        const importedJson = JSON.parse( reader.result );
+        if (importedJson)
+        {
+            saveToStorage(importedJson);
+            location.reload();           
+        }
+    }
+
+    event.currentTarget.value = '';
 }
