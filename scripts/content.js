@@ -132,7 +132,6 @@ async function getAppData()
 
     chrome.storage.sync.set( upToDateData );
     newStorageData = await chrome.storage.sync.get(null);
-    console.log(newStorageData);
     return newStorageData;
 }
 

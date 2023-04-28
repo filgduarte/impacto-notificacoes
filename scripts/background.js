@@ -19,7 +19,7 @@ async function handleSendNotification(notificationData, sendResponse)
         },
         "body":
         JSON.stringify({
-            phone: "5521988189988",
+            phone: notificationData.phone,
             message: notificationData.messageContent,
         })
     })
