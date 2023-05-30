@@ -58,15 +58,15 @@ async function getStatus(storageData) {
 
     if ( hasApiToken == false || hasPassword == false )
     {
-        // Se não houver chave de API ou senha configurada,
-        // manda pra tela de configuração
+        // If there is no API key or password set,
+        // send to configuration screen
         document.getElementById('popup-container').classList.add('no-password');
         return
     }
     else
     {
-        // Se houver, exibe apenas a tela inicial
-        // e campo de senha para liberar o resto
+        // Otherwise, display only the splash screen
+        // and password field to unlock the rest
         document.getElementById('popup-container').classList.remove('no-password');
         document.getElementById('popup-container').classList.add('locked');
     }
@@ -101,12 +101,12 @@ async function getStatus(storageData) {
     }
     else
     {
-        // Se o usuário não estiver logado no navegador
-        // trava a utilização do popup
+        // If the user is not logged into the browser
+        // locks the use of the popup
         document.getElementById('popup-container').classList.add('blocked');
     }
 
-    // Verifica se o painel de administração do site está aberto na aba ativa
+    // Checks if the site admin panel is open in the active tab
     if (adminTab && adminTab.active)
     {
         isSiteOpen = true;
@@ -116,8 +116,8 @@ async function getStatus(storageData) {
     }
     else
     {
-        // Se a aba ativa não for a do painel de administração
-        // trava a utilização do popup
+        // If the active tab is not the admin panel
+        // locks the use of the popup
         document.getElementById('popup-container').classList.add('blocked');
     }
 
@@ -306,6 +306,7 @@ async function generateFields(fields, category, sectionId)
         {
             itemSwitch.checked = itemData.enabled;
 
+            accordeonItem.querySelector('.delay-time-value').value = itemData.delayTime ?? 15;
             accordeonItem.querySelector('.customer-message .message-type').value = itemData.customerMessage.type;
             accordeonItem.querySelector('.customer-message .message-content').value = itemData.customerMessage.content;
             accordeonItem.querySelector('.retailer-message .message-type').value = itemData.retailerMessage.type;
@@ -418,6 +419,7 @@ function handleSave(key, item) {
     {
     [key] : {
                 enabled: item.querySelector('.switch-input').checked,
+                delayTime: item.querySelector('.delay-time-value').value,
                 customerMessage: {
                     type: item.querySelector('.customer-message .message-type').value,
                     content: item.querySelector('.customer-message .message-content').value,

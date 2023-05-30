@@ -123,7 +123,8 @@ async function getAppData()
         for (key in lastSentMessages)
         {
             let lastSent = new Date(lastSentMessages[key]);
-            if (getTimeDiff(now, lastSent) >= 15)
+            // DELETE THE LOG OF MESSAGES SENT OVER 12 HOURS AGO
+            if (getTimeDiff(now, lastSent) >= 720)
                 delete lastSentMessages[key];
         }
 
@@ -141,18 +142,20 @@ async function getAppData()
 async function getDataFromSite()
 {
 /*
-    ESTRUTURA DO STORAGE (KEY: VALUE)
+    STORAGE STRUCTURE (KEY: VALUE)
     appData: { password: 'string', plugchatToken: 'string' },
     status: [ 'nome do status 1', 'nome do status 2', ... ],
     billing : [ 'Inserir pagamento', 'Inserir desconto' ],
     status_nomeDoStatus1: {
         enabled: boolean,
+        delayTime: 15,
         customerMessage: { type: 'string', content: 'string' },
         retailerMessage: { type: 'string', content: 'string' },
     },
     ...,
     billing_nomeDoItem1: {
         enabled: boolean,
+        delayTime: 15,
         customerMessage: { type: 'string', content: 'string' },
         retailerMessage: { type: 'string', content: 'string' },
     },
@@ -222,6 +225,7 @@ async function sendNotification(notificationKey, trigger)
 {
     const storageData = await chrome.storage.sync.get([notificationKey, 'lastSentMessages']);
     const notificationData = storageData[notificationKey];
+    const delayTime = notificationData.delayTime ?? 15;
     let lastSentMessages = storageData.lastSentMessages;
 
     if ( ! (notificationData && notificationData.enabled) )
@@ -236,9 +240,10 @@ async function sendNotification(notificationKey, trigger)
     {
         const now = new Date();
         const lastSent = new Date(lastSentMessages[orderData.customerPhone]);
-        if (getTimeDiff(now, lastSent) < 15)
+        if (getTimeDiff(now, lastSent) < delayTime)
         {
-            showAlert('Notificação não enviada.', 'Uma notificação já foi enviada a esse cliente nos últimos 15 minutos.', 'warning');
+            const notificationMessage = `Uma notificação já foi enviada a esse cliente nos últimos ${notificationData.delayTime} minutos.`
+            showAlert('Notificação não enviada.', notificationMessage, 'warning');
             return;
         }
     }
