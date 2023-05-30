@@ -129,12 +129,13 @@ async function getStatus(storageData) {
 
 function handleLock(storageData)
 {
-    document.getElementById('lock-form').addEventListener('submit', (event) => {
+    document.getElementById('lock-form').addEventListener('submit', async (event) => {
         event.preventDefault();
         const rawFormData = new FormData(event.target);
         const formPassword = encodeURIComponent(rawFormData.get('password'));
+        const hashedPassword = await hashPassword(formPassword);
 
-        if (formPassword === storageData.appData.password)
+        if (hashedPassword === storageData.appData.password)
         {
             document.getElementById('popup-container').classList.remove('locked');
             moveActiveTabMarker();
@@ -159,10 +160,11 @@ function handleConfigSubmit(storageData) {
         importFile(e, e.target.files)
     });
 
-    document.querySelector('#configuracoes form').addEventListener('submit', (event) => {
+    document.querySelector('#configuracoes form').addEventListener('submit', async (event) => {
         event.preventDefault();
         const rawFormData = new FormData(event.target);
         const formData = {};
+        const storageData = await getStorageData();
         let currentAppData = {
             password: '',
             plugchatToken: '',
@@ -195,7 +197,7 @@ function handleConfigSubmit(storageData) {
                 if ( decodeURIComponent(formData.newPassword).length >= 8
                     && decodeURIComponent(formData.newPassword).length <= 16 )
                 {
-                    newAppData.password = formData.newPassword;
+                    newAppData.password = await hashPassword(formData.newPassword);
                 }
                 else
                 {
@@ -495,4 +497,21 @@ function importFile(event, file) {
     }
 
     event.currentTarget.value = '';
+}
+
+async function hashPassword(password) {
+    const userInfo = await chrome.identity.getProfileUserInfo();
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const saltData = encoder.encode(userInfo.id).buffer;
+
+    const concatenatedData = new Uint8Array(saltData.byteLength + data.byteLength);
+    concatenatedData.set(new Uint8Array(saltData), 0);
+    concatenatedData.set(new Uint8Array(data), saltData.byteLength);
+
+    const hashBuffer = await crypto.subtle.digest('SHA-256', concatenatedData);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+    return hashHex;
 }

@@ -12,20 +12,15 @@ async function init()
     let storageData = await getAppData();
     let appData = storageData.appData;
 
-    if (appData == false)
+    if (storageData == false || appData == false)
     {        
         const errorMessage = 'Não foi possível recuperar os dados das notificações.'
-        showAlert(errorMessage, 'danger');
+        showAlert('Erro', errorMessage, 'danger');
 
         throw errorMessage;
     }
 
     const statusSelects = document.querySelectorAll('select.pedido-item-status-alterar');
-    const paymentContainer = document.querySelector('.fa.fa-donate').closest('.linha.mb-40');
-    const addPaymentBtn = paymentContainer.querySelector('.btn');
-    const discountContainer = document.querySelector('.fa.fa-tags').closest('.linha.mb-40');
-    const addDiscountBtn = discountContainer.querySelector('.btn');
-
     if (statusSelects)
     {
         statusSelects.forEach((statusSelect) =>
@@ -34,15 +29,23 @@ async function init()
         });
     }
 
-    if (addPaymentBtn)
-        addPaymentBtn.addEventListener('click', function () {
+    const paymentContainer = document.querySelector('.fa.fa-donate')?.closest('.linha.mb-40');
+    if (paymentContainer)
+    {
+        const addPaymentBtn = paymentContainer.querySelector('.btn');
+        addPaymentBtn?.addEventListener('click', function () {
             sendNotification("billing_Inserir pagamento", this)
         });
+    }
 
-    if (addDiscountBtn)
-        addDiscountBtn.addEventListener('click', function () {
+    const discountContainer = document.querySelector('.fa.fa-tags')?.closest('.linha.mb-40');
+    if (discountContainer)
+    {
+        const addDiscountBtn = discountContainer.querySelector('.btn');
+        addDiscountBtn?.addEventListener('click', function () {
             sendNotification("billing_Inserir desconto", this)
         });
+    }
 }
 
 async function getAppData()
@@ -78,7 +81,7 @@ async function getAppData()
             || key == 'billing'
             || key == 'lastSentMessages'
             || key == 'lastChange'
-           )
+        )
             continue;
         
         if (key.slice(0,6) == 'status')
@@ -170,16 +173,18 @@ async function getDataFromSite()
         billing : ['Inserir pagamento', 'Inserir desconto'],
     };
 
-    if (currentPage == 'pedidos/detalhes')
+    if (currentPage == 'pedidos/home')
     {
-        statusOptionElements = document.querySelector('select[name="status"]').options;
+        statusOptionElements = document.querySelector('select.pedido-item-status-alterar').options;
     }
     else
     {
-        urlToFetch = baseURL + '?imprimastore=pedidos/detalhes';
-        statusSelectElement = await fetchFromPage(urlToFetch, 'select[name="status"]');
+        urlToFetch = baseURL + '?imprimastore=pedidos/home';
+        statusSelectElement = await fetchFromPage(urlToFetch, 'select.pedido-item-status-alterar');
         statusOptionElements = statusSelectElement.options;
     }
+
+    if ( ! statusOptionElements ) return false
 
     for (let i = 0; i < statusOptionElements.length; i++) {
         result.status.push(statusOptionElements[i].text);
@@ -224,6 +229,7 @@ async function sendNotification(notificationKey, trigger)
 
     let messageType = 'text';
     let messageContent = '';
+
     let orderData = await getOrderData(trigger);
 
     if (lastSentMessages && lastSentMessages.hasOwnProperty(orderData.customerPhone))
@@ -232,15 +238,19 @@ async function sendNotification(notificationKey, trigger)
         const lastSent = new Date(lastSentMessages[orderData.customerPhone]);
         if (getTimeDiff(now, lastSent) < 15)
         {
-            console.log('Notificação não enviada: Uma notificação já foi enviada a esse cliente nos últimos 15 minutos');
+            showAlert('Notificação não enviada.', 'Uma notificação já foi enviada a esse cliente nos últimos 15 minutos.', 'warning');
             return;
         }
     }
+
+    let userName = document.querySelector('.conteudo-navegacao-topo-perfil-nome').innerText;
+    messageContent += "*" + userName + ":*\n";
 
     const replacePlaceholders =
     {
         '{nome}' : orderData.customerName,
         '{npedido}' : orderData.orderNumber,
+        '{nitem}' : orderData.itemNumber,
         '{titulo}' : orderData.orderTitle,
         '{cores}' : orderData.orderColors,
         '{material}' : orderData.orderMaterial,
@@ -256,12 +266,12 @@ async function sendNotification(notificationKey, trigger)
     if (orderData.customerType == 'Padrão')
     {
         messageType = notificationData.customerMessage.type;
-        messageContent = replaceString(notificationData.customerMessage.content, replacePlaceholders);
+        messageContent += replaceString(notificationData.customerMessage.content, replacePlaceholders);
     }
     else
     {
         messageType = notificationData.retailerMessage.type;
-        messageContent = replaceString(notificationData.retailerMessage.content, replacePlaceholders);
+        messageContent += replaceString(notificationData.retailerMessage.content, replacePlaceholders);
     }
 
     if (messageContent == '')
@@ -293,6 +303,8 @@ async function sendNotification(notificationKey, trigger)
             }
             
             chrome.storage.sync.set( {lastSentMessages: lastSentMessages} );
+
+            showAlert('Notificação enviada.', 'O cliente receberá uma mensagem sobre essa alteração.', 'success');
         }
     });
 }
@@ -300,7 +312,10 @@ async function sendNotification(notificationKey, trigger)
 async function getOrderData(el)
 {
     let doc = document;
+    const selectedTr = el.closest('tr');
+
     const regex = /[^0-9]/g;
+    let itemNumber = '';
 
     if ( location.href.includes('pedidos/detalhes') == false
          && el.nodeName == 'SELECT'
@@ -308,13 +323,16 @@ async function getOrderData(el)
     {
         // SE O USUÁRIO NÃO ALTEROU O CAMPO STATUS NA PÁGINA
         // DE DETALHES DO PEDIDO, FAZ UM FETCH USANDO O LINK
-        const selectedOrderPage = el.closest('tr')
-                                    .querySelector('.btn-pequeno')
-                                    .href;
+        const selectedOrderPage = selectedTr.querySelector('.btn-pequeno').href;
         let response = await fetch(selectedOrderPage);
         let orderPageData = await response.text();
         const parser = new DOMParser();
         doc = parser.parseFromString(orderPageData, 'text/html');
+        itemNumber = selectedTr.querySelector('td.texto-centro p.texto-bold').innerText.split(' ')[1];
+    }
+    else
+    {
+        itemNumber = selectedTr.querySelector('.item-exibicao-ftp .texto-semibold').innerText;
     }
     
     const customerPhoneElement = doc.querySelector('.conteudo-area-branca > .linha:nth-child(2) .bloco-paragrafo-linha p:nth-child(4) span');
@@ -325,8 +343,8 @@ async function getOrderData(el)
         orderTitle = doc.querySelector('.conteudo-fluido > .linha:nth-child(3) .pb-10').innerText;
     }
 
-    const paymentContainer = document.querySelector('.fa.fa-donate').closest('.linha.mb-40');
-    const discountContainer = document.querySelector('.fa.fa-tags').closest('.linha.mb-40');
+    const paymentContainer = doc.querySelector('.fa.fa-donate').closest('.linha.mb-40');
+    const discountContainer = doc.querySelector('.fa.fa-tags').closest('.linha.mb-40');
 
     const orderData =
     {
@@ -339,6 +357,7 @@ async function getOrderData(el)
         // orderCover: '',
         // orderExtras: '',
         orderQuantity: doc.querySelector('.conteudo-fluido > .linha:nth-child(3) td:nth-child(3) .texto-semibold').innerText,
+        itemNumber: itemNumber,
         customerName: doc.querySelector('.texto-grande a').innerText,
         customerType: doc.querySelector('.texto-grande ~ p:last-child span').innerText,
         customerPhone: '55' + customerPhoneElement.innerText.replace(regex, ''),
@@ -360,22 +379,39 @@ function handleError(error)
     console.log(error);
 }
 
-function showAlert(message, type) {
+function showAlert(title, message, type) {
+    const oldAlert = document.querySelector('impacto-notificacoes-alert');
+    if (oldAlert)
+    {
+        oldAlert.remove();
+    }
+
     const container = document.getElementById('painel-geral');
     const alertElement = document.createElement('div');
+    const alertTitle = document.createElement('strong');
+    const alertTitleText = document.createTextNode(title);
+    const alertTitleBr = document.createElement('br');
     const alertParagraph = document.createElement('p');
     const alertText = document.createTextNode(message);
     const alertButton = document.createElement('button');
+
+    const colors = {
+        'success' : '#02a499',
+        'error' : '#ea2e4d',
+        'warning' : '#f0ad4e',
+    }
     const alertStyle = {
         'position' : 'fixed',
-        'top' : '10px',
-        'right' : '10px',
-        'font-weight' : 'bold',
+        'top' : '120px',
+        'right' : '20px',
+        'width' : '320px',
         'border-radius' : '5px',
-        'box-shadow' : '0 0 0 0 #ea2e4d',
-        'animation' : 'pulse 1000ms infinite'
+        'box-shadow' : '0 0 0 0 ' + colors[type],
+        'animation' : 'pulse 1000ms',
+        'animation-iteration-count' : 5,
     }
     const alertButtonStyle = {
+        'display' : 'flex',
         'padding' : '8px',
         'color' : '#FFF',
         'background-color' : 'transparent',
@@ -386,13 +422,17 @@ function showAlert(message, type) {
     Object.assign(alertButton.style, alertButtonStyle);
     alertParagraph.style.padding = '8px';
 
-    alertElement.classList.add('flex', `bg-${type}`);
+    alertElement.classList.add('flex', `bg-${type}`, 'impacto-notificacoes-alert');
     alertButton.classList.add('fa', 'fa-times');
     alertButton.setAttribute('type', 'button');
     alertButton.setAttribute('aria-label', 'Close');
     alertButton.addEventListener('click', function() {
         container.removeChild(alertElement);
     });
+
+    alertTitle.appendChild(alertTitleText);
+    alertParagraph.appendChild(alertTitle);
+    alertParagraph.appendChild(alertTitleBr);
     alertParagraph.appendChild(alertText);
     alertElement.appendChild(alertParagraph);
     alertElement.appendChild(alertButton);
