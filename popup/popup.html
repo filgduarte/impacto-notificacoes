@@ -126,19 +126,17 @@
                         <div class="accordeon-item__content">
                             <div class="wrapper">
                                 <fieldset class="delay-time">
-                                    <label>Tempo entre mensagens (minutos):</label>
-                                    <input class="delay-time-value" type="number" value="15">
+                                    <label>Tempo entre mensagens:</label>
+                                    <input class="delay-time-value" type="number" value="900">
+                                    <select class="delay-time-unit" title="unidade de tempo">
+                                        <option value="s">s</option>
+                                        <option value="m">min</option>
+                                        <option value="h">h</option>
+                                    </select>
                                 </fieldset>
                                 <fieldset class="customer-message">
                                     <label class="message-type-label">
                                         <span>Mensagem para o <strong>cliente</strong>:</span>
-                                        <!--
-                                        <select class="message-type">
-                                            <option value="text" selected>Texto</option>
-                                            <option value="image">Imagem</option>
-                                            <option value="sticker">Sticker</option>
-                                        </select>
-                                        -->
                                         <input type="hidden" class="message-type" value="text">
                                     </label>
                                     <fieldset class="textarea">
@@ -159,17 +157,15 @@
                                                 {...} <i class="gg-caret-down"></i>
                                             </button>
                                             <ul class="placeholders">
-                                                <li class="placeholder-item" title="Nome do cliente">{nome}</li>
+                                                <li class="placeholder-item" title="Nome do cliente">{cliente}</li>
                                                 <li class="placeholder-item" title="Número do pedido">{npedido}</li>
                                                 <li class="placeholder-item" title="Número do item">{nitem}</li>
-                                                <li class="placeholder-item" title="Título do produto">{titulo}</li>
-                                                <!-- <li class="placeholder-item" title="Cores">{cores}</li>
-                                                <li class="placeholder-item" title="Material">{material}</li>
-                                                <li class="placeholder-item" title="Formato">{formato}</li>
-                                                <li class="placeholder-item" title="Acabamento">{acabamento}</li>
-                                                <li class="placeholder-item" title="Revestimento">{revestimento}</li>
-                                                <li class="placeholder-item" title="Extras">{extras}</li> -->
+                                                <li class="placeholder-item" title="Título do produto">{produto}</li>
+                                                <li class="placeholder-item" title="Nome do arquivo">{nomearquivo}</li>
                                                 <li class="placeholder-item" title="Quantidade">{qtde}</li>
+                                                <li class="placeholder-item" title="Endereço de retirada">{balcao}</li>
+                                                <li class="placeholder-item" title="Link do pedido">{link}</li>
+                                                <li class="placeholder-item" title="Assinatura">{assinatura}</li>
                                             </ul>
                                         </div>
                                         <textarea class="message-content"></textarea>
@@ -178,13 +174,6 @@
                                 <fieldset class="retailer-message">
                                     <label class="message-type-label">
                                         <span>Mensagem para o <strong>revendedor</strong>:</span>
-                                        <!--
-                                        <select class="message-type">
-                                            <option value="text" selected>Texto</option>
-                                            <option value="image">Imagem</option>
-                                            <option value="sticker">Sticker</option>
-                                        </select>
-                                        -->
                                         <input type="hidden" class="message-type" value="text">
                                     </label>
                                     <fieldset class="textarea">
@@ -205,17 +194,15 @@
                                                 {...} <i class="gg-caret-down"></i>
                                             </button>
                                             <ul class="placeholders">
-                                                <li class="placeholder-item" title="Nome do cliente">{nome}</li>
+                                                <li class="placeholder-item" title="Nome do cliente">{cliente}</li>
                                                 <li class="placeholder-item" title="Número do pedido">{npedido}</li>
                                                 <li class="placeholder-item" title="Número do item">{nitem}</li>
-                                                <li class="placeholder-item" title="Título do produto">{titulo}</li>
-                                                <!-- <li class="placeholder-item" title="Cores">{cores}</li>
-                                                <li class="placeholder-item" title="Material">{material}</li>
-                                                <li class="placeholder-item" title="Formato">{formato}</li>
-                                                <li class="placeholder-item" title="Acabamento">{acabamento}</li>
-                                                <li class="placeholder-item" title="Revestimento">{revestimento}</li>
-                                                <li class="placeholder-item" title="Extras">{extras}</li> -->
+                                                <li class="placeholder-item" title="Título do produto">{produto}</li>
+                                                <li class="placeholder-item" title="Nome do arquivo">{nomearquivo}</li>
                                                 <li class="placeholder-item" title="Quantidade">{qtde}</li>
+                                                <li class="placeholder-item" title="Endereço de retirada">{balcao}</li>
+                                                <li class="placeholder-item" title="Link do pedido">{link}</li>
+                                                <li class="placeholder-item" title="Assinatura">{assinatura}</li>
                                             </ul>
                                         </div>
                                         <textarea class="message-content"></textarea>
@@ -254,19 +241,17 @@
                         <div class="accordeon-item__content">
                             <div class="wrapper">
                                 <fieldset class="delay-time">
-                                    <label>Tempo entre mensagens (minutos):</label>
-                                    <input class="delay-time-value" type="number" value="15">
+                                    <label>Tempo entre mensagens:</label>
+                                    <input class="delay-time-value" type="number" value="900">
+                                    <select class="delay-time-unit" title="unidade de tempo">
+                                        <option value="s">s</option>
+                                        <option value="m">min</option>
+                                        <option value="h">h</option>
+                                    </select>
                                 </fieldset>
                                 <fieldset class="customer-message">
                                     <label class="message-type-label">
                                         <span>Mensagem para o <strong>cliente</strong>:</span>
-                                        <!--
-                                        <select class="message-type">
-                                            <option value="text" selected>Texto</option>
-                                            <option value="image">Imagem</option>
-                                            <option value="sticker">Sticker</option>
-                                        </select>
-                                        -->
                                         <input type="hidden" class="message-type" value="text">
                                     </label>
                                     <fieldset class="textarea">
@@ -287,14 +272,17 @@
                                                 {...} <i class="gg-caret-down"></i>
                                             </button>
                                             <ul class="placeholders">
-                                                <li class="placeholder-item" title="Nome do cliente">{nome}</li>
+                                                <li class="placeholder-item" title="Nome do cliente">{cliente}</li>
                                                 <li class="placeholder-item" title="Número do pedido">{npedido}</li>
                                                 <li class="placeholder-item" title="Número do item">{nitem}</li>
-                                                <li class="placeholder-item" title="Título do produto">{titulo}</li>
+                                                <li class="placeholder-item" title="Título do produto">{produto}</li>
                                                 <li class="placeholder-item" title="Quantidade">{qtde}</li>
                                                 <li class="placeholder-item" title="Valor do pagamento">{vpagamento}</li>
                                                 <li class="placeholder-item" title="Forma de pagamento">{fpagamento}</li>
                                                 <li class="placeholder-item" title="Desconto">{desconto}</li>
+                                                <li class="placeholder-item" title="Endereço de retirada">{balcao}</li>
+                                                <li class="placeholder-item" title="Link do pedido">{link}</li>
+                                                <li class="placeholder-item" title="Assinatura">{assinatura}</li>
                                             </ul>
                                         </div>
                                         <textarea class="message-content"></textarea>
@@ -303,13 +291,6 @@
                                 <fieldset class="retailer-message">
                                     <label class="message-type-label">
                                         <span>Mensagem para o <strong>revendedor</strong>:</span>
-                                        <!--
-                                        <select class="message-type">
-                                            <option value="text" selected>Texto</option>
-                                            <option value="image">Imagem</option>
-                                            <option value="sticker">Sticker</option>
-                                        </select>
-                                        -->
                                         <input type="hidden" class="message-type" value="text">
                                     </label>
                                     <fieldset class="textarea">
@@ -330,14 +311,17 @@
                                                 {...} <i class="gg-caret-down"></i>
                                             </button>
                                             <ul class="placeholders">
-                                                <li class="placeholder-item" title="Nome do cliente">{nome}</li>
+                                                <li class="placeholder-item" title="Nome do cliente">{cliente}</li>
                                                 <li class="placeholder-item" title="Número do pedido">{npedido}</li>
                                                 <li class="placeholder-item" title="Número do item">{nitem}</li>
-                                                <li class="placeholder-item" title="Título do produto">{titulo}</li>
+                                                <li class="placeholder-item" title="Título do produto">{produto}</li>
                                                 <li class="placeholder-item" title="Quantidade">{qtde}</li>
                                                 <li class="placeholder-item" title="Valor do pagamento">{vpagamento}</li>
                                                 <li class="placeholder-item" title="Forma de pagamento">{fpagamento}</li>
                                                 <li class="placeholder-item" title="Desconto">{desconto}</li>
+                                                <li class="placeholder-item" title="Endereço de retirada">{balcao}</li>
+                                                <li class="placeholder-item" title="Link do pedido">{link}</li>
+                                                <li class="placeholder-item" title="Assinatura">{assinatura}</li>
                                             </ul>
                                         </div>
                                         <textarea class="message-content"></textarea>

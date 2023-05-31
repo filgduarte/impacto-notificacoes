@@ -307,6 +307,7 @@ async function generateFields(fields, category, sectionId)
             itemSwitch.checked = itemData.enabled;
 
             accordeonItem.querySelector('.delay-time-value').value = itemData.delayTime ?? 15;
+            accordeonItem.querySelector('.delay-time-unit').value = itemData.delayUnit ?? 's';
             accordeonItem.querySelector('.customer-message .message-type').value = itemData.customerMessage.type;
             accordeonItem.querySelector('.customer-message .message-content').value = itemData.customerMessage.content;
             accordeonItem.querySelector('.retailer-message .message-type').value = itemData.retailerMessage.type;
@@ -420,6 +421,7 @@ function handleSave(key, item) {
     [key] : {
                 enabled: item.querySelector('.switch-input').checked,
                 delayTime: item.querySelector('.delay-time-value').value,
+                delayUnit: item.querySelector('.delay-time-unit').value,
                 customerMessage: {
                     type: item.querySelector('.customer-message .message-type').value,
                     content: item.querySelector('.customer-message .message-content').value,

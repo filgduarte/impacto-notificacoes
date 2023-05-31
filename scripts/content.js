@@ -123,8 +123,8 @@ async function getAppData()
         for (key in lastSentMessages)
         {
             let lastSent = new Date(lastSentMessages[key]);
-            // DELETE THE LOG OF MESSAGES SENT OVER 12 HOURS AGO
-            if (getTimeDiff(now, lastSent) >= 720)
+            // DELETE THE LOG OF MESSAGES SENT OVER 6 HOURS AGO
+            if (getTimeDiff(now, lastSent, 'h') >= 6)
                 delete lastSentMessages[key];
         }
 
@@ -149,6 +149,7 @@ async function getDataFromSite()
     status_nomeDoStatus1: {
         enabled: boolean,
         delayTime: 15,
+        delayUnit: 'm',
         customerMessage: { type: 'string', content: 'string' },
         retailerMessage: { type: 'string', content: 'string' },
     },
@@ -156,6 +157,7 @@ async function getDataFromSite()
     billing_nomeDoItem1: {
         enabled: boolean,
         delayTime: 15,
+        delayUnit: 'm',
         customerMessage: { type: 'string', content: 'string' },
         retailerMessage: { type: 'string', content: 'string' },
     },
@@ -225,7 +227,8 @@ async function sendNotification(notificationKey, trigger)
 {
     const storageData = await chrome.storage.sync.get([notificationKey, 'lastSentMessages']);
     const notificationData = storageData[notificationKey];
-    const delayTime = notificationData.delayTime ?? 15;
+    const delayTime = notificationData.delayTime ?? 15 * 60;
+    const delayUnit = notificationData.delayUnit ?? 's';
     let lastSentMessages = storageData.lastSentMessages;
 
     if ( ! (notificationData && notificationData.enabled) )
@@ -240,9 +243,14 @@ async function sendNotification(notificationKey, trigger)
     {
         const now = new Date();
         const lastSent = new Date(lastSentMessages[orderData.customerPhone]);
-        if (getTimeDiff(now, lastSent) < delayTime)
+        if (getTimeDiff(now, lastSent, delayUnit) < delayTime)
         {
-            const notificationMessage = `Uma notificação já foi enviada a esse cliente nos últimos ${notificationData.delayTime} minutos.`
+            const delayTimeText = {
+                s : `nos últimos ${notificationData.delayTime} segundos.`,
+                m : `nos últimos ${notificationData.delayTime} minutos.`,
+                h : `nas últimas ${notificationData.delayTime} horas.`,
+            }
+            const notificationMessage = `Uma notificação já foi enviada a esse cliente ${delayTimeText[delayUnit]}`
             showAlert('Notificação não enviada.', notificationMessage, 'warning');
             return;
         }
@@ -253,20 +261,18 @@ async function sendNotification(notificationKey, trigger)
 
     const replacePlaceholders =
     {
-        '{nome}' : orderData.customerName,
+        '{cliente}' : orderData.customerName,
         '{npedido}' : orderData.orderNumber,
         '{nitem}' : orderData.itemNumber,
-        '{titulo}' : orderData.orderTitle,
-        '{cores}' : orderData.orderColors,
-        '{material}' : orderData.orderMaterial,
-        '{formato}' : orderData.orderSize,
-        '{acabamento}' : orderData.orderFinishing,
-        '{revestimento}' : orderData.orderCover,
-        '{extras}' : orderData.orderExtras,
+        '{produto}' : orderData.orderTitle,
+        '{nomearquivo}' : orderData.fileName,
         '{qtde}' : orderData.orderQuantity,
         '{vpagamento}' : orderData.paymentValue,
         '{fpagamento}' : orderData.paymentMethod,
         '{desconto}' : orderData.discount,
+        '{balcao}' : orderData.withdrawal,
+        '{link}' : `https://www.angraficaimpacto.com.br/conta/pedido/${orderData.orderNumber.slice(1)}`,
+        '{assinatura}' : userName,
     }
     if (orderData.customerType == 'Padrão')
     {
@@ -316,11 +322,12 @@ async function sendNotification(notificationKey, trigger)
 
 async function getOrderData(el)
 {
-    let doc = document;
     const selectedTr = el.closest('tr');
-
     const regex = /[^0-9]/g;
+    let doc = document;
     let itemNumber = '';
+    let fileName = '';
+    let withdrawal = '';
 
     if ( location.href.includes('pedidos/detalhes') == false
          && el.nodeName == 'SELECT'
@@ -334,12 +341,16 @@ async function getOrderData(el)
         const parser = new DOMParser();
         doc = parser.parseFromString(orderPageData, 'text/html');
         itemNumber = selectedTr.querySelector('td.texto-centro p.texto-bold').innerText.split(' ')[1];
+        const fileNameRef = selectedTr.querySelector('.far.fa-file');
+        fileName = fileNameRef ? fileNameRef.nextSibling.nodeValue : '';
     }
     else
     {
         itemNumber = selectedTr.querySelector('.item-exibicao-ftp .texto-semibold').innerText;
+        const fileNameRef = selectedTr.querySelector('.item-exibicao-noem');
+        fileName = fileNameRef ? fileNameRef.querySelector('.texto-semibold').innerText : '';
     }
-    
+    const orderDetailsContainer = doc.querySelector('.conteudo-pagina-titulo').nextElementSibling;
     const customerPhoneElement = doc.querySelector('.conteudo-area-branca > .linha:nth-child(2) .bloco-paragrafo-linha p:nth-child(4) span');
 
     let orderTitle = doc.querySelector('.conteudo-fluido > .linha:nth-child(3) .texto-bold').innerText;
@@ -350,24 +361,31 @@ async function getOrderData(el)
 
     const paymentContainer = doc.querySelector('.fa.fa-donate').closest('.linha.mb-40');
     const discountContainer = doc.querySelector('.fa.fa-tags').closest('.linha.mb-40');
+    const withdrawalContainerRef = orderDetailsContainer.querySelector('.fa.fa-map-marker-alt');
+    if (withdrawalContainerRef)
+    {
+        const withdrawalContainer = withdrawalContainerRef.closest('.linha:not(.mb-10)');
+        withdrawal = 'Retirada: ' + withdrawalContainer.querySelector('.bloco-paragrafo-linha p').innerText;
+    }
+    else
+    {
+        const deliveryContainer = orderDetailsContainer.querySelector('.fa.fa-shipping-fast').closest('.linha:not(.mb-10)');
+        withdrawal = deliveryContainer.querySelector('.bloco-paragrafo-linha p').innerText;
+    }
 
     const orderData =
     {
         orderNumber: doc.querySelector('.pagina-titulo span').innerText,
         orderTitle: orderTitle,
-        // orderColors: '',
-        // orderMaterial: '',
-        // orderSize: '',
-        // orderFinishing: '',
-        // orderCover: '',
-        // orderExtras: '',
+        fileName: fileName,
         orderQuantity: doc.querySelector('.conteudo-fluido > .linha:nth-child(3) td:nth-child(3) .texto-semibold').innerText,
         itemNumber: itemNumber,
-        customerName: doc.querySelector('.texto-grande a').innerText,
-        customerType: doc.querySelector('.texto-grande ~ p:last-child span').innerText,
+        customerName: orderDetailsContainer.querySelector('.texto-grande a').innerText,
+        customerType: orderDetailsContainer.querySelector('.texto-grande ~ p:last-child span').innerText,
         customerPhone: '55' + customerPhoneElement.innerText.replace(regex, ''),
         paymentValue: paymentContainer.querySelector('input[name="valor"]').value,
         paymentMethod: paymentContainer.querySelector('select[name="forma"]').value,
+        withdrawal: withdrawal,
         discount: discountContainer.querySelector('input[name="valor"]').value,
     };
 
@@ -454,9 +472,27 @@ function replaceString(str, replaceMap)
     return str;
 }
 
-function getTimeDiff(time1, time2)
+function getTimeDiff(time1, time2, unit='s')
 {
-    const timeDiff = Math.round( (time1.getTime() - time2.getTime()) / 60000 );
+    let divisor = 1;
+    switch (unit)
+    {
+        case 'h':
+            // 1h = 60m * 60s * 1000ms
+            divisor = 3600000;
+        break;
+
+        case 'm':
+            // 1m = 60s * 1000ms
+            divisor = 60000;
+        break;
+
+        case 's':
+            // 1s = 1000ms
+            divisor = 1000;
+        break;
+    }
+    const timeDiff = Math.round( (time1.getTime() - time2.getTime()) / divisor );
     return timeDiff;
 }
 
