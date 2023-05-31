@@ -2,7 +2,7 @@
     "manifest_version" : 3,
     "name" : "Gráfica Impacto Notificações",
     "description" : "Notifica os clientes da Gráfica Impacto quando você atualizar o status dos pedidos deles.",
-    "version" : "0.1",
+    "version" : "1.0",
     "author": "filipegduarte@gmail.com",
     "icons" :
     {
