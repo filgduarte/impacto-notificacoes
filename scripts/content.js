@@ -257,7 +257,6 @@ async function sendNotification(notificationKey, trigger)
     }
 
     let userName = document.querySelector('.conteudo-navegacao-topo-perfil-nome').innerText;
-    messageContent += "*" + userName + ":*\n";
 
     const replacePlaceholders =
     {
@@ -287,6 +286,9 @@ async function sendNotification(notificationKey, trigger)
 
     if (messageContent == '')
         return;
+    
+    messageContent = `*${userName}:*`
+                    + `${messageContent}`;
 
     chrome.runtime.sendMessage(
     {
