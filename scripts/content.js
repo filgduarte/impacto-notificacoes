@@ -9,9 +9,11 @@ if (currentPage)
 
 async function init()
 {
+    await chrome.storage.local.get({siteSync: false}, function(data) {
+        chrome.storage.local.set({siteSync: data.siteSync});
+    });
     let storageData = await getAppData();
     let appData = storageData.appData;
-
     if (storageData == false || appData == false)
     {        
         const errorMessage = 'Não foi possível recuperar os dados das notificações.'
@@ -50,7 +52,14 @@ async function init()
 
 async function getAppData()
 {
+    const siteSync = await chrome.storage.local.get({siteSync: false});
     let storageData = await chrome.storage.sync.get(null);
+
+    if (siteSync == false)
+    {
+        return storageData;
+    }
+
     let siteData = await getDataFromSite();
 
     if (Object.keys(siteData).length == 0)
@@ -86,9 +95,8 @@ async function getAppData()
         
         if (key.slice(0,6) == 'status')
         {
-            let statusName = key.slice(7); // status_ -> 7 characters
-                    
-            if (siteData.status.includes(statusName))
+            let statusId = key.slice(7); // status_ -> 7 characters
+            if ( siteData.status.find(item => item.id === statusId) )
             {
                 upToDateData[key] = storageData[key];
             }
@@ -99,12 +107,12 @@ async function getAppData()
         }
         else
         {
-            let billingName = key.slice(8);  // billing_ -> 8 characters
+            let billingId = key.slice(8);  // billing_ -> 8 characters
             
             if ( ! storageData.billing)
                 continue;
 
-            if (storageData.billing.includes(billingName))
+            if ( storageData.billing.find(item => item.id === billingId) )
             {
                 upToDateData[key] = storageData[key];
             }
@@ -144,9 +152,16 @@ async function getDataFromSite()
 /*
     STORAGE STRUCTURE (KEY: VALUE)
     appData: { password: 'string', plugchatToken: 'string' },
-    status: [ 'nome do status 1', 'nome do status 2', ... ],
+    status: [
+        {
+            id: 'id do status 1',
+            name: 'nome do status 1',
+        },
+        ...,
+    ],
     billing : [ 'Inserir pagamento', 'Inserir desconto' ],
-    status_nomeDoStatus1: {
+    status_idDoStatus1: {
+        name: 'string',
         enabled: boolean,
         delayTime: 15,
         delayUnit: 'm',
@@ -175,7 +190,16 @@ async function getDataFromSite()
             plugchatToken: '',
         },
         status : [],
-        billing : ['Inserir pagamento', 'Inserir desconto'],
+        billing : [
+            {
+                id: '1',
+                name: 'Inserir pagamento',
+            },
+            {
+                id: '2',
+                name: 'Inserir desconto',
+            }
+        ],
     };
 
     if (currentPage == 'pedidos/home')
@@ -192,7 +216,10 @@ async function getDataFromSite()
     if ( ! statusOptionElements ) return false
 
     for (let i = 0; i < statusOptionElements.length; i++) {
-        result.status.push(statusOptionElements[i].text);
+        result.status.push({
+            id: statusOptionElements[i].value,
+            name: statusOptionElements[i].text,
+        });
     }
 
     return result;
@@ -212,19 +239,17 @@ async function fetchFromPage(url, selector)
 
 function handleStatusChange()
 {
-    const newStatus = this.options[this.selectedIndex].text;
-    const newStatusKey = 'status_' + newStatus;
-    sendNotification(newStatusKey, this);
-}
-
-function handleAddPayment()
-{
-    const newStatusKey = 'status_' + newStatus;
+    const newStatusId = this.options[this.selectedIndex].value;
+    const newStatusKey = 'status_' + newStatusId;
     sendNotification(newStatusKey, this);
 }
 
 async function sendNotification(notificationKey, trigger)
 {
+    const localData = await chrome.storage.local.get('deactivated');
+    if (localData.deactivated)
+        return;
+
     const storageData = await chrome.storage.sync.get([notificationKey, 'lastSentMessages']);
     const notificationData = storageData[notificationKey];
     const delayTime = notificationData.delayTime ?? 15 * 60;

@@ -13,10 +13,15 @@ function init(storageData) {
     handleLock(storageData);
     handleConfigSubmit();
     setTabsActions();
+    handleActivation();
     generateFields(storageData.status, 'status', '#status');
     generateFields(storageData.billing, 'billing', '#financeiro');
     handlePlaceholderButtons();
     document.getElementById('token-field').value = storageData.appData.plugchatToken;
+
+    chrome.storage.local.get({siteSync: false}, function(data) {
+        document.getElementById('sitesync').checked = data.siteSync;
+    });
 }
 
 async function getStorageData()
@@ -226,10 +231,14 @@ function handleConfigSubmit(storageData) {
             }
         }
 
-        if ( currentAppData.password != ''
-            && formData.password != currentAppData.password )
+        if ( currentAppData.password != '' )
         {
-            errors.push('• Digite a senha atual para salvar as alterações.');
+            const hashedPassword = await hashPassword(formData.password);
+
+            if (hashedPassword !== currentAppData.password)
+            {
+                errors.push('• Digite a senha atual para salvar as alterações.');
+            }
         }
 
         if ( errors.length == 0 )
@@ -238,9 +247,10 @@ function handleConfigSubmit(storageData) {
             {
                 return
             }
+            const siteSync = formData.siteSync ? true : false;
 
             saveToStorage({ appData: newAppData });
-
+            chrome.storage.local.set({siteSync});
             location.reload();
         }
         else
@@ -285,6 +295,78 @@ function goToSection(section = null)
     document.querySelector('main').style.transform = `translateX(-${targetSection.offsetLeft}px)`;
 }
 
+async function handleActivation()
+{
+    const storageData = await chrome.storage.local.get('deactivated');
+    let deactivated = storageData.deactivated;
+
+    const activationSwitch = document.getElementById('extension-active');
+    activationSwitch.checked = (deactivated) ? false : true;
+
+    if (deactivated)
+    {
+        handleDeactivationTimer(deactivated);
+        const timer = setInterval(function() {
+            const remainingTime = handleDeactivationTimer(deactivated);
+            if (remainingTime <= 0) {
+                activationSwitch.checked = true;
+                chrome.storage.local.remove('deactivated');
+                clearInterval(timer);
+                return;
+            }
+        }, 1000);
+    }
+
+    activationSwitch.addEventListener('change', function(event) {
+        const switchInput = event.target;
+        if (switchInput.checked == false)
+        {
+            const now = new Date();
+            deactivated = now.toISOString();
+            chrome.storage.local.set({deactivated});
+        }
+        else
+        {
+            deactivated = 0;
+            chrome.storage.local.remove('deactivated');
+        }
+
+        handleDeactivationTimer(deactivated);
+        const timer = setInterval(function() {
+            const remainingTime = handleDeactivationTimer(deactivated);
+            if (remainingTime <= 0) {
+                activationSwitch.checked = true;
+                chrome.storage.local.remove('deactivated');
+                clearInterval(timer);
+                return;
+            }
+        }, 1000);
+    });
+    
+}
+
+function handleDeactivationTimer(deactivated)
+{
+    const progress = document.getElementById('activation-progress');
+    const remainingTimeLabel = document.querySelector('.activation__counter span');
+    const deactivationInterval = progress.max;
+    let elapsedTime = deactivationInterval;
+    let remainingTime = 0;
+
+    if (deactivated)
+    {
+        const now = new Date();
+        const deactivationDate = new Date(deactivated);
+        elapsedTime = Math.round( (now.getTime() - deactivationDate.getTime()) / 1000 );
+        remainingTime = deactivationInterval - elapsedTime;
+    }
+    progress.value = (elapsedTime <= deactivationInterval) ? elapsedTime : 60;
+    remainingTimeLabel.innerText = remainingTime;
+
+    return remainingTime;
+}
+
+
 async function generateFields(fields, category, sectionId)
 {
     const accordeon = document.querySelector(`${sectionId} .accordeon`);
@@ -293,13 +375,13 @@ async function generateFields(fields, category, sectionId)
     for (let i = 0; i < fields.length; i++)
     {
         const accordeonItem = originalAccordeonItem.cloneNode(true);
-        const itemDataKey = category + '_' + fields[i];
+        const itemDataKey = category + '_' + fields[i].id;
         const storageData = await chrome.storage.sync.get(itemDataKey);
         const itemData = storageData[itemDataKey];
         const itemSwitch = accordeonItem.querySelector('.switch-input');
 
-        accordeonItem.querySelector('.status-title').innerHTML = fields[i];
-        itemSwitch.setAttribute('name', fields[i]);
+        accordeonItem.querySelector('.status-title').innerHTML = fields[i].name;
+        itemSwitch.setAttribute('name', fields[i].id);
         itemSwitch.addEventListener('change', (event) => handleSwitchClick(event, itemDataKey));
 
         if ( itemData )

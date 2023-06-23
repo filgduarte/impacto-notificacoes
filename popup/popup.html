@@ -97,6 +97,20 @@
                         </span>
                     </li>
                 </ul>
+                <div class="activation">
+                    <div class="activation__counter">
+                        <label for="activation-progress">Reativa em <span>0</span>s</label>
+                        <progress id="activation-progress" value="0" max="60"></progress>
+                    </div>
+                    <label class="activation__switch">
+                        <input type="checkbox" id="extension-active" name="extensionActive" title="Extensão ativada" class="switch-input" checked>
+                        <div class="switch-ui">
+                            <div class="switch">
+                                <div class="switch__marker"></div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
                 <footer>
                     <small>Desenvolvido por <a href="http://filduarte.com.br" target="_blank">Filipe Duarte</a></small>
                 </footer>
@@ -356,6 +370,20 @@
                             <label for="token-field">Token:</label>
                             <input type="password" name="plugchatToken" id="token-field">
                         </div>
+                    </fieldset>
+                    <fieldset class="sitesync-option">
+                        <legend>
+                            <span>Permitir sincronização com site</span>
+                            <label>
+                                <input type="checkbox" id="sitesync" name="siteSync" class="switch-input">
+                                <div class="switch-ui">
+                                    <div class="switch">
+                                        <div class="switch__marker"></div>
+                                    </div>
+                                </div>
+                            </label>
+                        </legend>
+                        <p>Marque esta opção para permitir que este navegador verifique os status de pedido disponíveis no site e atualize as opções disponíveis na extensão.</p>
                     </fieldset>
                     <div class="form-field">
                         <label for="password-field">Para salvar, digite sua senha atual:</label>
