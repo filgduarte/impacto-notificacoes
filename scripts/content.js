@@ -281,7 +281,8 @@ async function sendNotification(notificationKey, trigger)
         }
     }
 
-    let userName = document.querySelector('.conteudo-navegacao-topo-perfil-nome').innerText;
+    let userNameSplit = document.querySelector('.conteudo-navegacao-topo-perfil-nome').innerText.split(' ');
+    let userName = userNameSplit[0];
 
     const replacePlaceholders =
     {
@@ -312,7 +313,7 @@ async function sendNotification(notificationKey, trigger)
     if (messageContent == '')
         return;
     
-    messageContent = `*${userName}:*`
+    messageContent = `*${userName}:*\n`
                     + `${messageContent}`;
 
     chrome.runtime.sendMessage(
