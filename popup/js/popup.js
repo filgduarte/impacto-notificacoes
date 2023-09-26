@@ -152,17 +152,18 @@ function handleLock(storageData)
     });
 }
 
-function handleConfigSubmit(storageData) {
-    document.querySelector('.export-import .export').addEventListener('click', e => {
-        e.preventDefault();
+function handleConfigSubmit() {
+    document.querySelector('.export-import .export').addEventListener('click', async (event) => {
+        event.preventDefault();
+        const storageData = await getStorageData();
         downloadFile(
             JSON.stringify(storageData),
             'impacto-notificacoes.json',
             'text-json'
         );
     });
-    document.querySelector('.export-import .import').addEventListener('change', e => {
-        importFile(e, e.target.files)
+    document.querySelector('.export-import .import').addEventListener('change', (event) => {
+        importFile(event, event.target.files)
     });
 
     document.querySelector('#configuracoes form').addEventListener('submit', async (event) => {
