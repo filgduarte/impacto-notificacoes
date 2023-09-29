@@ -1,6 +1,6 @@
 async function handleSendNotification(notificationData, sendResponse)
 {
-    let storageData = await chrome.storage.sync.get('appData');
+    let storageData = await chrome.storage.local.get('appData');
     const apiKey = storageData.appData.plugchatToken;
     const apiURLs =
     {

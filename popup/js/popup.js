@@ -31,7 +31,7 @@ async function getStorageData()
     if (adminTab)
         await chrome.tabs.sendMessage(adminTab.id, {message: 'updateStorageData'});
 
-    result = await chrome.storage.sync.get(null);
+    result = await chrome.storage.local.get(null);
 
     return result;
 }
@@ -377,7 +377,7 @@ async function generateFields(fields, category, sectionId)
     {
         const accordeonItem = originalAccordeonItem.cloneNode(true);
         const itemDataKey = category + '_' + fields[i].id;
-        const storageData = await chrome.storage.sync.get(itemDataKey);
+        const storageData = await chrome.storage.local.get(itemDataKey);
         const itemData = storageData[itemDataKey];
         const itemSwitch = accordeonItem.querySelector('.switch-input');
 
@@ -458,7 +458,7 @@ async function generateFields(fields, category, sectionId)
 
 async function handleSwitchClick(event, key)
 {
-    let storageData = await chrome.storage.sync.get(key);
+    let storageData = await chrome.storage.local.get(key);
 
     if ( ! storageData[key]) {
         storageData[key] = {
@@ -547,7 +547,7 @@ function saveToStorage(data)
     const now = new Date();
     data.lastChange = now.toISOString();
 
-    chrome.storage.sync.set(data);
+    chrome.storage.local.set(data);
 }
 
 function downloadFile(data, fileName, fileType) {

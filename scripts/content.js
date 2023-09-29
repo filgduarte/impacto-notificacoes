@@ -12,6 +12,7 @@ async function init() {
     });
     let storageData = await getAppData();
     let appData = storageData.appData;
+    console.log(storageData);
 
     if (storageData == false || appData == false) {
         const errorMessage =
@@ -53,7 +54,7 @@ async function init() {
 
 async function getAppData() {
     const siteSync = await chrome.storage.local.get({ siteSync: false });
-    let storageData = await chrome.storage.sync.get(null);
+    let storageData = await chrome.storage.local.get(null);
 
     if (siteSync == false) {
         return storageData;
@@ -70,8 +71,8 @@ async function getAppData() {
     }
 
     if (Object.keys(storageData).length == 0) {
-        chrome.storage.sync.set(siteData);
-        storageData = await chrome.storage.sync.get(null);
+        chrome.storage.local.set(siteData);
+        storageData = await chrome.storage.local.get(null);
 
         return storageData;
     }
@@ -97,7 +98,7 @@ async function getAppData() {
             if (siteData.status.find((item) => item.id === statusId)) {
                 upToDateData[key] = storageData[key];
             } else {
-                chrome.storage.sync.remove(key);
+                chrome.storage.local.remove(key);
             }
         } else {
             let billingId = key.slice(8); // billing_ -> 8 characters
@@ -107,7 +108,7 @@ async function getAppData() {
             if (storageData.billing.find((item) => item.id === billingId)) {
                 upToDateData[key] = storageData[key];
             } else {
-                chrome.storage.sync.remove(key);
+                chrome.storage.local.remove(key);
             }
         }
     }
@@ -128,8 +129,8 @@ async function getAppData() {
         };
     }
 
-    chrome.storage.sync.set(upToDateData);
-    newStorageData = await chrome.storage.sync.get(null);
+    chrome.storage.local.set(upToDateData);
+    newStorageData = await chrome.storage.local.get(null);
     return newStorageData;
 }
 
@@ -243,16 +244,17 @@ async function sendNotification(notificationKey, trigger) {
     const localData = await chrome.storage.local.get("deactivated");
     if (localData.deactivated) return;
 
-    const storageData = await chrome.storage.sync.get([
+    const storageData = await chrome.storage.local.get([
         notificationKey,
         "lastSentMessages",
     ]);
-    const notificationData = storageData[notificationKey];
-    const delayTime = notificationData.delayTime ?? 15 * 60;
-    const delayUnit = notificationData.delayUnit ?? "s";
-    let lastSentMessages = storageData.lastSentMessages;
 
-    if (!(notificationData && notificationData.enabled)) return;
+    const notificationData = storageData[notificationKey];
+    const delayTime = notificationData?.delayTime ?? 15 * 60;
+    const delayUnit = notificationData?.delayUnit ?? "s";
+    let lastSentMessages = storageData?.lastSentMessages;
+
+    if (!(notificationData && notificationData?.enabled)) return;
 
     let messageType = "text";
     let messageContent = "";
@@ -347,7 +349,7 @@ async function sendNotification(notificationKey, trigger) {
                     [orderData.customerPhone]: now.toISOString(),
                 };
 
-                chrome.storage.sync.set({ lastSentMessages: lastSentMessages });
+                chrome.storage.local.set({ lastSentMessages: lastSentMessages });
 
                 showAlert(
                     "Notificação enviada.",
