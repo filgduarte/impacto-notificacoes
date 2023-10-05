@@ -362,8 +362,8 @@ async function sendNotification(notificationKey, trigger) {
 }
 
 async function getOrderData(el) {
-    const selectedTr = el.closest("tr") ?? document.querySelector('.tabela:not(.tabela-pequena) tr');
     const regex = /[^0-9]/g;
+    let selectedTr = el.closest("tr") ?? document.querySelector('.tabela:not(.tabela-pequena) tr');
     let doc = document;
     let itemNumber = "";
     let fileName = "";
@@ -385,6 +385,12 @@ async function getOrderData(el) {
             .innerText.split(" ")[1];
         const fileNameRef = selectedTr.querySelector(".far.fa-file");
         fileName = fileNameRef ? fileNameRef.nextSibling.nodeValue : "";
+        const orderItems = doc.querySelectorAll(".conteudo-fluido > .linha:nth-child(3) tr");
+        orderItems.forEach(orderItem => {
+            if (orderItem.querySelector('.texto-semibold').innerText == itemNumber)
+                selectedTr = orderItem;
+        });
+        console.log(selectedTr);
     } else {
         itemNumber = selectedTr.querySelector(
             ".item-exibicao-ftp .texto-semibold"
@@ -397,17 +403,17 @@ async function getOrderData(el) {
     const orderDetailsContainer = doc.querySelector(
         ".conteudo-pagina-titulo"
     ).nextElementSibling;
-    const customerPhoneElement = doc.querySelector(
-        ".conteudo-area-branca > .linha:nth-child(2) .bloco-paragrafo-linha p:nth-child(4) span"
+    const customerDetails = doc.querySelectorAll(
+        ".conteudo-area-branca > .linha:nth-child(2) .bloco-paragrafo-linha p"
     );
-
-    let orderTitle = doc.querySelector(
-        ".conteudo-fluido > .linha:nth-child(3) .texto-bold"
-    ).innerText;
+    let customerPhone = '';
+    customerDetails.forEach(detail => {
+        if (detail.innerText.includes('Telefone'))
+            customerPhone = "55" + detail.querySelector('span').innerText.replace(regex, "");
+    });
+    let orderTitle = selectedTr.querySelector(".texto-bold").innerText;
     if (orderTitle == "") {
-        orderTitle = doc.querySelector(
-            ".conteudo-fluido > .linha:nth-child(3) .pb-10"
-        ).innerText;
+        orderTitle = selectedTr.querySelector(".pb-10").innerText;
     }
 
     const paymentContainer = doc
@@ -440,15 +446,13 @@ async function getOrderData(el) {
         orderNumber: doc.querySelector(".pagina-titulo span").innerText,
         orderTitle: orderTitle,
         fileName: fileName,
-        orderQuantity: doc.querySelector(
-            ".conteudo-fluido > .linha:nth-child(3) td:nth-child(3) .texto-semibold"
-        ).innerText,
+        orderQuantity: selectedTr.querySelector("td:nth-child(3) .texto-semibold").innerText,
         itemNumber: itemNumber,
         customerName: customerNameSplit[0],
         customerType: orderDetailsContainer.querySelector(
             ".texto-grande ~ p:last-child span"
         ).innerText,
-        customerPhone: "55" + customerPhoneElement.innerText.replace(regex, ""),
+        customerPhone: customerPhone,
         paymentValue: paymentContainer?.querySelector('input[name="valor"]').value,
         paymentMethod: paymentContainer?.querySelector('select[name="forma"]').value,
         withdrawal: withdrawal,
